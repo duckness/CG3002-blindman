@@ -92,6 +92,9 @@ class GiveDirections:
     def distance_from_node(self, x, y, node):
         return math.hypot(x-self.maplist[node]['x'], y-self.maplist[node]['y'])
 
+    def current_node(self, node):
+        print 'You are near node', node
+
     def giving_direction(self, x, y, heading, targetNode):
         def direction_to_node(self, curr_x, curr_y, heading, node_index):
             def convert_compass_angle(cangle):
