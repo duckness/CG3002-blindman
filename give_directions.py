@@ -92,6 +92,9 @@ class GiveDirections:
     def distance_from_node(self, x, y, node):
         return math.hypot(x-self.maplist[node]['x'], y-self.maplist[node]['y'])
 
+    def current_node(self, node):
+        print 'You are near node', node
+
     def giving_direction(self, x, y, heading, targetNode):
         def direction_to_node(self, curr_x, curr_y, heading, node_index):
             def convert_compass_angle(cangle):
@@ -122,6 +125,16 @@ class GiveDirections:
         print self.turn_direction(direction_to_node(self,x,y,heading,targetNode))
         print 'Walk %.1f' % (targetNodeDist) + ' centimeters'
 
+# Takes in x_coor y_coor macAddr and distance to the accesspoint, checks weather if within the specified distance
+    def nearby_wifi(self, x, y, macAddr, range):
+        for accesspoint in self.mapfetcher.wifi:
+            if (accesspoint['macAddr'] == macAddr):
+                print accesspoint
+                dist_calculated = math.hypot(x - float(accesspoint['x']),y - float(accesspoint['y']))
+                print dist_calculated
+                if (dist_calculated <= range):
+                    return True
+        return False
 
     def main(self):
         bldg = raw_input("Please enter the Building name ")
@@ -138,12 +151,16 @@ class GiveDirections:
         heading = int(raw_input("Please enter the heading "))
         self.giving_direction(x_coor,y_coor,heading)
 
+
+
 #Testing
 #
-#giveD = GiveDirections()
+giveD = GiveDirections()
+
 #giveD.main()
-# giveD.fetch_map("COM1", "2")
-# giveD.calculate_path(20, 5)
+giveD.fetch_map("COM1", "2")
+giveD.calculate_path(20, 5)
+print giveD.nearby_wifi(2160,2436,'e8:ba:70:61:af:20',200)
 # print giveD.path
 # #print giveD.maplist
 # # print "\ntest1"

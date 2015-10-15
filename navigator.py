@@ -23,8 +23,17 @@ class Navigator:
                     return -1 #reached destination
         return None #error
 
-    def main_loop(self): #THIS ASSUMES NODES ARE AT LEAST 2-3m apart
+    #returns coordinates of the starting node
+    #requires the shortest path to be calculated first
+    def get_position(self):
+        firstNode = self.giveDir.path[0]
+        firstNode_x = self.giveDir.maplist[firstNode]['x']
+        firstNode_y = self.giveDir.maplist[firstNode]['y']
+        #print firstNode_x
+        #print firstNode_y
+        return firstNode_x, firstNode_y
 
+    def main_loop(self): #THIS ASSUMES NODES ARE AT LEAST 2-3m apart
 
         self.prevNode = self.giveDir.path[0] #starting node
         print self.giveDir.maplist[self.prevNode]
@@ -42,16 +51,21 @@ class Navigator:
             prevNode_y = self.giveDir.maplist[self.prevNode]['y']
             dist_prev_to_next_node = self.giveDir.distance_from_node(prevNode_x, prevNode_y, self.nextNode) #distance from first to second node
 
+            #if distance from current to first node < 10% of the distance away from first node
+            if((dist_from_prev_node < (0.1*dist_prev_to_next_node))):
+                self.giveDir.current_node(self.prevNode) #prints 'You are near node (num)' (first node)
+
             #if distance from current to first node > 10% of the distance away from first node
             if((dist_from_prev_node > (0.1*dist_prev_to_next_node))) :
                 self.giveDir.giving_direction(x_coor, y_coor, heading, self.nextNode)
 
             #if distance from current to second node > 90% of the distance away from first node
             if((dist_from_prev_node > (0.9*dist_prev_to_next_node))):
+                self.giveDir.current_node(self.nextNode) #prints 'You are near node (num)' (second node)
                 self.prevNode = self.nextNode
                 self.nextNode = self.get_next_node()
-                print self.prevNode
-                print self.nextNode
+                print 'Prev node: ' + str(self.prevNode)
+                print 'Next Node: ' + str(self.nextNode)
         print 'yay'
 
     def main(self):
