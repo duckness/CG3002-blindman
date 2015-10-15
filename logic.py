@@ -1,4 +1,6 @@
-﻿from datetime import datetime
+import math
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 from serial_processor import SerialProcessor
 from navigator import Navigator
@@ -19,12 +21,18 @@ INPUT_SENSOR_1 = "10"
 INPUT_SENSOR_2 = "11"
 INPUT_SENSOR_3 = "12"
 INPUT_SENSOR_4 = "13"
+#POS magic
+G = 9.81
+MAX_CALIBRATION_COUNT = 200
+MAGIC_THRESHOLD = 1.000001
+MAGIC_DISTANCE = 1.3
+MAGIC_HEADING = 0.75
 
 class Logic:
 
     def __init__(self):
         #init variables
-        self.position = [0,0,0]
+        self.position = [0,0] # [0,0,0]
         self.northAt = 0
         self.building = ""
         self.level = ""
@@ -41,7 +49,6 @@ class Logic:
         self.signal = ""
         self.loop_timer = 0
         self.loop_action = 0
-        #self.raw_data_arr = ["",""]
         #init classes
         self.serial_processor = SerialProcessor()
         self.navigator = Navigator()
@@ -50,7 +57,14 @@ class Logic:
         self.audio = Audio()
         self.wifi_finder = WifiFinder()
         #init dist calculation
-
+        self.r = 0
+        self.count = 0
+        self.threshold = 0
+        self.short_distance = 0
+        self.long_distance = 0 # total distance moved
+        self.avg_heading = 0
+        self.x = []
+        self.y = []
 
     def main(self):
         self.setup()
@@ -59,13 +73,18 @@ class Logic:
 
     def setup(self):
         #get building name etc from user input
-            #self.user_input.get_input()
+        # self.user_input.get_input()
         #input info into navigator
-            #self.navigator.retrieve_map(input info)
-            #self.northAt = self.navigator.get_northAt
+        # self.navigator.retrieve_map(input info)
+        # self.northAt = self.navigator.get_northAt
+        # DUMMY
+        self.northAt = 315
         #get starting position
-            #self.position = self.navigator.get_position
-
+        # self.position = self.navigator.get_position
+        # DUMMY
+        self.position = [0,0]
+        self.x.append(self.position[0])
+        self.y.append(self.position[1])
         #setup timer
         #get current time in millsec
         current_time = datetime.now().time()
@@ -107,7 +126,7 @@ class Logic:
 
     def get_mega_input(self):
         self.raw_data_arr = self.serial_processor.read_from_mega()
-        print self.raw_data_arr
+        # print self.raw_data_arr
         #dummy input
         # self.raw_data_arr = ["01","270"]
         if (self.serial_processor.verify_data(self.raw_data_arr) == True):
@@ -117,33 +136,63 @@ class Logic:
             # imu
             if self.raw_data_arr[0] == INPUT_IMU:
                if (self.parse_IMU_input() == True):
-                   #TODO: ADD CALIBRATION FOR LIMIT HERE
-                   #TODO: self.position = dist calculation
-                   pass
+                   self.r = math.sqrt(self.acc[0]*self.acc[0] + self.acc[1]*self.acc[1] + self.acc[2]*self.acc[2])
+
+                   if self.count <= MAX_CALIBRATION_COUNT:
+                       self.calibrate_threshold()
+                   else:
+                       self.short_distance += self.r * G * self.dt * self.dt * MAGIC_DISTANCE
+               else:
+                    pass
+
             # heading
             elif self.raw_data_arr[0] == INPUT_HEADING:
                 if(self.parse_heading_input() == True):
-                    #TODO: not sure what heading will be used for. dist cal?
+                    self.avg_heading = (self.headings[0] + self.headings[1]) / 2.0
+                    if self.avg_heading < (MAGIC_HEADING * self.headings[0]):
+                        self.avg_heading = self.headings[0]
+                    offset = self.get_coord()
+                    self.x.append(self.x[-1]+offset[0])
+                    self.y.append(self.y[-1]+offset[1])
+                    self.long_distance += self.short_distance
+                    self.short_distance = 0
+                    self.position[0] = self.x[-1]
+                    self.position[1] = self.y[-1]
+
+                    # if (len(self.x) == 50):
+                    #     plt.figure(1)
+                    #     plt.plot(self.x,self.y,"bo--")
+                    #     plt.grid(True)
+                    #     plt.show()
+                else:
                     pass
 
             # sensor #1
             elif self.raw_data_arr[0] == INPUT_SENSOR_1:
                if(self.parse_sensor_1_input() == True):
                    pass
+               else:
+                   pass
 
             # sensor #2
             elif self.raw_data_arr[0] == INPUT_SENSOR_2:
                 if(self.parse_sensor_2_input() == True):
+                    pass
+                else:
                     pass
 
             # sensor #3
             elif self.raw_data_arr[0] == INPUT_SENSOR_3:
                 if(self.parse_sensor_3_input() == True):
                     pass
+                else:
+                    pass
 
             # sensor #4
             elif self. raw_data_arr[0] == INPUT_SENSOR_4:
                 if(self.parse_sensor_4_input() == True):
+                    pass
+                else:
                     pass
 
             else:
@@ -222,6 +271,40 @@ class Logic:
             except ValueError:
                 pass
         return False
+
+    def calibrate_threshold(self):
+        if self.count < MAX_CALIBRATION_COUNT:
+            if self.count == 0:
+                print "Calibrating"
+            self.count += 1
+            self.threshold = max(self.threshold, self.r)
+        elif self.count == MAX_CALIBRATION_COUNT:
+            self.count += 1
+            self.threshold *= MAGIC_THRESHOLD
+            print "Ready! " + str(self.threshold)
+        else:
+            pass
+
+    def north_from_Y(self):
+        if self.northAt <= 180:
+            return self.northAt
+        elif self.northAt > 180:
+            return -(360-self.northAt)
+
+    def deg_from_Y(self):
+        offset = self.north_from_Y()
+        yDeg = self.avg_heading + offset
+        if yDeg == 360:
+            yDeg = 0;
+        return yDeg
+
+    def get_coord(self):
+        angle = self.deg_from_Y()
+        rad_angle = math.radians(angle)
+        y = self.short_distance * math.sin(rad_angle)
+        x = self.short_distance * math.cos(rad_angle)
+        return (x,y)
+
 #testing
 logic = Logic()
 logic.main()

@@ -5,7 +5,7 @@ from give_directions import GiveDirections
 class Navigator:
     def __init__(self):
         self.mapfetcher = MapFetcher()
-        self.pathcalculator = PathCalculator()        
+        self.pathcalculator = PathCalculator()
         self.building = ""
         self.level = ""
         self.giveDir = GiveDirections()
@@ -31,7 +31,7 @@ class Navigator:
         firstNode_y = self.giveDir.maplist[firstNode]['y']
         #print firstNode_x
         #print firstNode_y
-        return firstNode_x, firstNode_y
+        return [firstNode_x, firstNode_y]
 
     def main_loop(self): #THIS ASSUMES NODES ARE AT LEAST 2-3m apart
 
@@ -82,7 +82,7 @@ class Navigator:
         print "The shortest path is"
         print self.giveDir.path
         self.main_loop()
-        
+
 #testing
 #navigator = Navigator()
 #navigator.main()
