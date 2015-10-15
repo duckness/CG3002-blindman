@@ -125,14 +125,14 @@ class GiveDirections:
         print self.turn_direction(direction_to_node(self,x,y,heading,targetNode))
         print 'Walk %.1f' % (targetNodeDist) + ' centimeters'
 
-# Takes in x_coor y_coor macAddr and distance to it, checks weather if within the specified distance
-    def nearby_wifi(self, x, y, macAddr, dist):
+# Takes in x_coor y_coor macAddr and distance to the accesspoint, checks weather if within the specified distance
+    def nearby_wifi(self, x, y, macAddr, range):
         for accesspoint in self.mapfetcher.wifi:
             if (accesspoint['macAddr'] == macAddr):
                 print accesspoint
                 dist_calculated = math.hypot(x - float(accesspoint['x']),y - float(accesspoint['y']))
                 print dist_calculated
-                if (dist_calculated <= dist):
+                if (dist_calculated <= range):
                     return True
         return False
 
@@ -160,7 +160,7 @@ giveD = GiveDirections()
 #giveD.main()
 giveD.fetch_map("COM1", "2")
 giveD.calculate_path(20, 5)
-print giveD.nearby_wifi(269,2199,'e8:ba:70:61:c9:60',200)
+print giveD.nearby_wifi(2160,2436,'e8:ba:70:61:af:20',200)
 # print giveD.path
 # #print giveD.maplist
 # # print "\ntest1"
