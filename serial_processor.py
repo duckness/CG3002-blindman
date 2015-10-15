@@ -5,7 +5,7 @@
 import serial
 import operator
 import math
-#mega = serial.Serial(port='/dev/cu.usbserial-AH02MFHB', baudrate=115200, timeout=3)
+mega = serial.Serial(port='/dev/cu.usbserial-AH02MFHB', baudrate=115200, timeout=3)
 
 class SerialProcessor:
     def get_checksum(self, str):
@@ -22,7 +22,7 @@ class SerialProcessor:
                 chksum = int(data[2])
             except ValueError:
                 chksum = 666
-            return chksum == getChecksum(data[1])
+            return chksum == self.get_checksum(data[1])
 
     def wait_for_ready(self):
             ready = False
@@ -31,7 +31,7 @@ class SerialProcessor:
                 ready = "Begin: " in mega.readline()
                 if (not ready):
                     mega.write("RDY")
-    
+
     def read_from_mega(self):
         raw_data = mega.readline().replace("\n", "")
         raw_data_arr = raw_data.split(", ")

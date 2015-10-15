@@ -28,6 +28,7 @@ class Logic:
         self.northAt = 0
         self.building = ""
         self.level = ""
+        self.values = []
         self.dt = 0.0
         self.acc = [0, 0, 0]
         self.gyro = [0, 0, 0]
@@ -49,13 +50,13 @@ class Logic:
         self.audio = Audio()
         self.wifi_finder = WifiFinder()
         #init dist calculation
-        
+
 
     def main(self):
         self.setup()
         self.loop()
         self.serial_processor.close_mega()
-       
+
     def setup(self):
         #get building name etc from user input
             #self.user_input.get_input()
@@ -64,24 +65,24 @@ class Logic:
             #self.northAt = self.navigator.get_northAt
         #get starting position
             #self.position = self.navigator.get_position
-        
-        #setup timer    
+
+        #setup timer
         #get current time in millsec
         current_time = datetime.now().time()
-        self.loop_timer = current_time.microsecond   
-        
+        self.loop_timer = current_time.microsecond
+
         #set-up serial processing
-        #waitForReady()
-        #print "Ready to recieve data from Mega"
+        self.serial_processor.wait_for_ready()
+        print "Ready to recieve data from Mega"
 
     def loop(self):
         while(1):
             #TODO: perhaps input a different timing scheme for this
-            #read from mega at every possible second 
+            #read from mega at every possible second
             self.get_mega_input()
             #get current time in seconds
             current_time = datetime.now().time()
-            mricos = current_time.microsecond  
+            mricos = current_time.microsecond
             #print mricos
 
             #every half second, calculate stuff/check wifi
@@ -89,7 +90,7 @@ class Logic:
                 self.loop_timer = mricos
                 if(self.loop_action == ACTION_NAVIGATION):
                     #print "navi"
-                    self.loop_action = ACTION_WIFI                    
+                    self.loop_action = ACTION_WIFI
                     #do navigation
                         #directions = self.navigator.get_directions()
                     #play sounds
@@ -99,19 +100,19 @@ class Logic:
                     #self.signal = self.wifi_finder.is_within_range()
                     #print signal
                     #check with navigation if wifi is true
-                    self.loop_action = ACTION_NAVIGATION                    
+                    self.loop_action = ACTION_NAVIGATION
                     #do wifi
                         #check wifi/position
-                
+
 
     def get_mega_input(self):
-        #self.raw_data_arr = self.serial_processor.read_from_mega()
-        #print self.raw_data_arr
+        self.raw_data_arr = self.serial_processor.read_from_mega()
+        print self.raw_data_arr
         #dummy input
-        self.raw_data_arr = ["01","270"]
+        # self.raw_data_arr = ["01","270"]
         if (self.serial_processor.verify_data(self.raw_data_arr) == True):
-            # values
-            values = self.raw_data_arr[1].split("/")
+            # self.values
+            self.values = self.raw_data_arr[1].split("/")
 
             # imu
             if self.raw_data_arr[0] == INPUT_IMU:
@@ -152,71 +153,71 @@ class Logic:
             pass
 
     def parse_IMU_input(self):
-        if len(values) == 13:
+        if len(self.values) == 13:
             try:
-                self.dt = float(values[0])
-                self.gyro[0] = float(values[1])
-                self.gyro[1] = float(values[2])
-                self.gyro[2] = float(values[3])
-                self.acc[0] = float(values[4])
-                self.acc[1] = float(values[5])
-                self.acc[2] = float(values[6])
-                self.magno[0] = float(values[7])
-                self.magno[1] = float(values[8])
-                self.magno[2] = float(values[9])
-                self.pressure = float(values[10])
-                self.altitude = float(values[11])
-                self.temperature = float(values[12])
+                self.dt = float(self.values[0])
+                self.gyro[0] = float(self.values[1])
+                self.gyro[1] = float(self.values[2])
+                self.gyro[2] = float(self.values[3])
+                self.acc[0] = float(self.values[4])
+                self.acc[1] = float(self.values[5])
+                self.acc[2] = float(self.values[6])
+                self.magno[0] = float(self.values[7])
+                self.magno[1] = float(self.values[8])
+                self.magno[2] = float(self.values[9])
+                self.pressure = float(self.values[10])
+                self.altitude = float(self.values[11])
+                self.temperature = float(self.values[12])
                 return True
             except ValueError:
                 pass
-        return False    
+        return False
 
     def parse_heading_input(self):
-        if len(values) == 1:
+        if len(self.values) == 1:
             try:
-                self.headings[1] = headings[0]
-                self.headings[0] = float(values[0])
+                self.headings[1] = self.headings[0]
+                self.headings[0] = float(self.values[0])
                 return True
             except ValueError:
                 pass
         return False
 
     def parse_sensor_1_input(self):
-         if len(values) == 2:
+         if len(self.values) == 2:
             try:
-                self.sensors[0][0] = float(values[0])
-                self.sensors[0][1] = float(values[1])
+                self.sensors[0][0] = float(self.values[0])
+                self.sensors[0][1] = float(self.values[1])
                 return True
             except ValueError:
                 pass
          return False
 
     def parse_sensor_2_input(self):
-        if len(values) == 2:
+        if len(self.values) == 2:
             try:
-                self.sensors[1][0] = float(values[0])
-                self.sensors[1][1] = float(values[1])
+                self.sensors[1][0] = float(self.values[0])
+                self.sensors[1][1] = float(self.values[1])
                 return True
             except ValueError:
                 pass
         return False
 
     def parse_sensor_3_input(self):
-        if len(values) == 2:
+        if len(self.values) == 2:
             try:
-                self.sensors[2][0] = float(values[0])
-                self.sensors[2][1] = float(values[1])
+                self.sensors[2][0] = float(self.values[0])
+                self.sensors[2][1] = float(self.values[1])
                 return True
             except ValueError:
                 pass
         return False
 
     def parse_sensor_4_input(self):
-        if len(values) == 2:
+        if len(self.values) == 2:
             try:
-                self.sensors[3][0] = float(values[0])
-                self.sensors[3][1] = float(values[1])
+                self.sensors[3][0] = float(self.values[0])
+                self.sensors[3][1] = float(self.values[1])
                 return True
             except ValueError:
                 pass
