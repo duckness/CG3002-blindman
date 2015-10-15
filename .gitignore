@@ -412,3 +412,5 @@ $RECYCLE.BIN/
 # Windows shortcuts
 *.lnk
 
+*.pyproj
+*.sln

@@ -1,4 +1,4 @@
-from map_fetcher import MapFetcher
+﻿from map_fetcher import MapFetcher
 from path_calculator import PathCalculator
 from give_directions import GiveDirections
 
@@ -84,5 +84,5 @@ class Navigator:
         self.main_loop()
         
 #testing
-navigator = Navigator()
-navigator.main()
+#navigator = Navigator()
+#navigator.main()
