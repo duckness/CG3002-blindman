@@ -16,7 +16,8 @@ class Audio:
                        'go': pygame.mixer.Sound("resources/go.wav"),
                        'beep_left': pygame.mixer.Sound("resources/beep_left.wav"),
                        'beep_mid': pygame.mixer.Sound("resources/beep_mid.wav"),
-                       'beep_right': pygame.mixer.Sound("resources/beep_right.wav")
+                       'beep_right': pygame.mixer.Sound("resources/beep_right.wav"),
+                       'trapped': pygame.mixer.Sound("resources/trapped.mp3")
                        }
 
     def play_sound(self, sound):
