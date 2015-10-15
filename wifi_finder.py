@@ -11,9 +11,8 @@ CYCLES = 3
 
 class WifiFinder:
 
-    counter = 0
-
     def __init__(self):
+        self.counter = 0
         pass
 
     def is_within_range(self):
