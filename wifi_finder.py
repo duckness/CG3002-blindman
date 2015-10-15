@@ -14,7 +14,11 @@ class WifiFinder:
     def __init__(self):
         self.counter = 0
         pass
-
+    
+    # possible response when you are not near the access point
+    # {'MAC': 'AA:BB:CC:DD:EE:FF', 'strength': -53, 'is_near': False}
+    # possible response when you are near the access point
+    # {'MAC': 'AA:BB:CC:DD:EE:FF', 'strength': -41, 'is_near': True}
     def is_within_range(self):
         signal = self.get_signal()
         if signal['strength'] > MIN_DB_IS_A_METRE:
