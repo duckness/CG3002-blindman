@@ -8,6 +8,7 @@ class Audio:
         pygame.mixer.init()
         self.init_sounds()
 
+    # TODO add new sounds
     def init_sounds(self):
         self.sounds = {'left': pygame.mixer.Sound("resources/turn_left.wav"),
                        'right': pygame.mixer.Sound("resources/turn_right.wav"),
@@ -20,5 +21,19 @@ class Audio:
                        'trapped': pygame.mixer.Sound("resources/trapped.wav")
                        }
 
+    # sound is a string, name of the sound file you want to play
     def play_sound(self, sound):
-        sound.play(loops=0)
+        self.sounds[sound].play(loops=0)
+
+    # tell the user the node he currently is at. 
+    def play_node(self, node_number):
+        channel = sound.play('node')
+        number = str(node_number)
+        for c in number:
+            channel.queue(c)
+
+
+# a = Audio()
+# a.play_sound('stop')
+# time.sleep(20)
+
