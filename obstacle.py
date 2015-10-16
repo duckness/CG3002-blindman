@@ -36,6 +36,7 @@ class ObstacleCues:
         return checksum
 
     # todo: actually scan serial instead of a file
+    """
     def scan_serial(self):
         f = open('demo.txt')
         for line in f:
@@ -46,34 +47,59 @@ class ObstacleCues:
                 if sensors[1] == 0:  # 0 means out of range
                     continue
                 else:
-                    for i in range(0,3):
+                    if distance[0][1] <= MIN_DISTANCE_us or distance[0][2] <= MIN_DISTANCE_ir :
+                        alert_direction = self.index_to_direction[int(line[1])]
+                        self.audio.play_sound(self.audio.sounds[alert_direction])
+                        self.alt_route(distance)
+                    for i in range(1,3):
                         if distance[i][1] <= MIN_DISTANCE_us or distance[i][2] <= MIN_DISTANCE_ir :
                             alert_direction = self.index_to_direction[int(line[1])]
                             self.audio.play_sound(self.audio.sounds[alert_direction])
-                            self.alt_route(distance)
 
                 """
-                if sensors[2] <= MIN_DISTANCE:
-                    alert_direction = self.index_to_direction[int(line[1])]
-                    self.audio.play_sound(self.audio.sounds[alert_direction])
-                """
+
+    def detect_obstacles(self,obstaclses):
+        for i,value in enumerate(obstaclses):
+            if value[1] <= MIN_DISTANCE_us or value[2] <= MIN_DISTANCE_ir :
+                alert_direction = self.index_to_direction[i]
+                self.audio.play_sound(self.audio.sounds[alert_direction])
+                if i == 1 or i == 2:
+                    self.alt_route(obstaclses)
 
 
     def alt_route(self,distance):
+        if not self.detect_ostacle_right(distance[3]):
+            return True
+        if not self.detect_ostacle_left(distance[0]):
+            return True
+        #if not self.detect_ostacle_behind(distance[3]):
+            #return True
+        self.audio.play_sound(self.audio.sounds['trapped'])
+        return False
 
-        if not (distance[1][0] <= MIN_DISTANCE_us or distance[1][1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
+
+    def detect_ostacle_right(self,distance):
+        if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
             self.audio.play_sound(self.audio.sounds['right'])
             self.audio.play_sound(self.audio.sounds['go'])
-            return
-        if not (distance[2][0] <= MIN_DISTANCE_us or distance[2][1] <= MIN_DISTANCE_ir):
+        else:
+            return True
+        return False
+
+    def detect_ostacle_left(self,distance):
+        if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
             self.audio.play_sound(self.audio.sounds['left'])
             self.audio.play_sound(self.audio.sounds['go'])
-            return
-        if not (distance[3][0] <= MIN_DISTANCE_us or distance[3][1] <= MIN_DISTANCE_ir):
+        else:
+            return True
+        return False
+
+    def detect_ostacle_behind(self,distance):
+        if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
             self.audio.play_sound(self.audio.sounds['around'])
             self.audio.play_sound(self.audio.sounds['go'])
-            return
-        self.audio.play_sound(self.audio.sounds['trapped'])
-        return
+        else:
+            return True
+        return False
 
 
