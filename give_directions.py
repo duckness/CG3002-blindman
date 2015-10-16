@@ -1,4 +1,4 @@
-﻿from map_fetcher import MapFetcher
+from map_fetcher import MapFetcher
 from path_calculator import PathCalculator
 
 import math
@@ -13,14 +13,21 @@ class GiveDirections:
         self.maplist = ""
         self.edges = ""
         self.path = ""
-        self.northAt = 0
-        self.current_node = -1
-        self.next_node = -1
-        self.prev_node = -1
-        self.end_node = -1
+        self.northAt = ""
+        self.prevNode = ""
+        self.nextNode = ""
 
-    def walking_direction (self, point1, point2):
+    def fetch_map(self, building, level, start, end):
+        self.building = building
+        self.level = level
+        self.maplist, self.edges = self.mapfetcher.fetch_map(building, level)
+        self.northAt = float(self.mapfetcher.get_info()['northAt'])
+        self.path = self.pathcalculator.calculate_path(self.maplist, self.edges, start, end)
+        self.prevNode = self.path[0]
+        self.nextNode = self.path[1]
+        print "Shortest Path:", self.path
 
+    def walking_direction(self, point1, point2):
         if point1[0] < point2[0]:
             if point1[1] < point2[1]:
                 return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point2[0])))
@@ -28,7 +35,6 @@ class GiveDirections:
                 return 180 - math.degrees(math.atan2 ((point2[0] - point1[0]), (point1[1] - point2[1])))
             else:
                 return 90
-
         elif point1[0] > point2[0]:
             if point1[1] < point2[1]:
                 return 360 - math.degrees(math.atan2((point1[0] - point2[0]),(point2[1] - point1[1])))
@@ -36,14 +42,13 @@ class GiveDirections:
                 return 180 + math.degrees(math.atan2((point1[0] - point2[0]),(point1[1] - point2 [1])))
             else:
                 return 270
-
         else:
             if point1[1] < point2[1]:
                 return 360
             else:
                 return 180
 
-    def turn_angle(self, heading, newheading):
+    def turning_angle(self, heading, newheading):
         ang = newheading - heading
         if (ang > 180):
             ang -= 360
@@ -51,90 +56,110 @@ class GiveDirections:
             ang += 360
         return ang
 
-    def turn_direction(self, angle):
-        if (angle == 180):
-            return "Why..."
-        elif (angle == 0):
-            return "Go Straight"
+    def turning_direction(self, angle):
+        if (angle == 0):
+            direction = "Go Straight"
         elif (angle < 0):
-            return 'Turn Left %.2f' % -(angle) + ' degrees'
-        return 'Turn Right %.2f' % angle + ' degrees'
-
-    def turn_direction2(self, prv, cur, nxt): #deprecated
-        cur_angle = self.walking_direction(prv,cur)
-        nxt_angle = self.walking_direction(cur,nxt)
-        ang = self.turn_angle(cur_angle, nxt_angle)
-        if (ang == 180):
-            return "Why..."
-        elif (ang == 0):
-            return "Go Straight"
-        elif (ang > 0):
-            return "Turn Right"
-        return "Turn Left"
-
-    def fetch_map(self, building, level):
-        self.building = building
-        self.level = level
-        self.maplist, self.edges = self.mapfetcher.fetch_map(
-                                    building, level)
-        self.northAt = self.mapfetcher.get_info()
-
-    def get_northAt(self):
-        return self.northAt
-
-    def calculate_path(self, start, end):
-        self.path = self.pathcalculator.calculate_path(
-                    self.maplist, self.edges, start, end)
-
-        #print self.maplist
-        #print 'Go Straight' #recalibrate here
-        for i in range(0,len(self.path)):
-            if (i != 0 and i!=len(self.path) - 1): #not first and last node
-                prev = [self.maplist[self.path[i-1]]['x'], self.maplist[self.path[i-1]]['y']]
-                curr = [self.maplist[self.path[i]]['x'], self.maplist[self.path[i]]['y']]
-                nxt = [self.maplist[self.path[i+1]]['x'], self.maplist[self.path[i+1]]['y']]
-              #  print self.turn_direction2(prev,curr,nxt)
-
-    #    print "----"
+            direction = "Turn Left by " + str(round(-(angle), 2)) + " degrees"
+        else:
+            direction = "Turn Right by " + str(round(angle, 2)) + " degrees"
+        return direction
 
     def distance_from_node(self, x, y, node):
         return math.hypot(x-self.maplist[node]['x'], y-self.maplist[node]['y'])
 
-    #def current_node(self, node):
-    #    print 'You are near node', node
+    def convert_compass_angle(self, cangle):
+        ang = cangle + self.northAt
+        if(ang > 360):
+            ang -= 360
+        return ang
 
-    def giving_direction(self, x, y, heading, targetNode):
-        def direction_to_node(self, curr_x, curr_y, heading, node_index):
-            def convert_compass_angle(cangle):
-                ang = cangle + self.northAt
-                if (ang > 360):
-                    ang -= 360
-                #print 'ang = ' + str(ang)
-                return ang
-            cur = [curr_x,curr_y]
-            nxt = [self.maplist[node_index]['x'], self.maplist[node_index]['y']]
-            curheading = convert_compass_angle(heading) #adjust to map angles
-            return self.turn_angle(curheading, self.walking_direction(cur, nxt))
+    def turn_direction_to_node(self, x, y, heading, target_node):
+        curr = [x, y]
+        nxt = [self.maplist[target_node]['x'], self.maplist[target_node]['y']] #get coordinates of target node
+        currheading = self.convert_compass_angle(heading) #get map angles
+        walk_angle = self.walking_direction(curr, nxt) #get angle from one point to another
+        angle = self.turning_angle(currheading, walk_angle) #adjust the angle with the map angles
+        turning_dir = self.turning_direction(angle)
+        return turning_dir
 
+    def get_next_node(self):
+        for i in range(len(self.path)):
+            if (self.nextNode == self.path[i]):
+                if (i != len(self.path)-1):
+                    return self.path[i+1]
+                else:
+                    return -1 #reached destination
+        return None #error
+
+    def giving_exact_direction(self, x, y, heading, targetNode):
+        destination = 0
         targetNodeDist = self.distance_from_node(x, y, targetNode)
+        #if the exact distance is reached
         if (targetNodeDist <= 0):
             for _i in range(0,len(self.path)):
                 i = self.path[_i] #i = node of path at index _i
-                #print targetNode, self.maplist[i]
+
                 if (targetNode == i):
                     if (_i == len(self.path)-1): #if it is at the end of path array
-                        print 'You are at the destination'
-                        return (-1, -1)
-                    print 'You are on node', targetNode
-                    targetNode = self.path[_i+1]
-                    targetNodeDist = self.distance_from_node(x,y,targetNode)
-                    break
-        print 'I am going to node ' + str(targetNode)
-        turning = self.turn_direction(direction_to_node(self,x,y,heading,targetNode))
-        print 'Walk %.1f' % (targetNodeDist) + ' centimeters'
-        return (turning, targetNodeDist)
+                        node_direction = "Reached exact destination!"
+                        destination = 1
+                    else:
+                        node_direction =  "At node " + targetNode + " exactly!"
+                        targetNode = self.path[_i+1]
+                        targetNodeDist = self.distance_from_node(x,y,targetNode)
+                        break
+        else:
+            node_direction = "" #to allow the addition of rough/vauge directions
+        turn_direction = self.turn_direction_to_node(x, y, heading, targetNode)
+        walk_direction = "Walk " + str(round(targetNodeDist, 2)) + " centimeters"
+        return (node_direction, turn_direction, walk_direction, destination)
 
-# Takes in x_coor y_coor macAddr and distance to the accesspoint, checks weather if within the specified distance
+    def giving_vauge_direction(self, dist_from_prev_node, dist_between_nodes):
+        destination = 0
+        #if distance from current to first node < 10% of the distance between both nodes
+        if((dist_from_prev_node < (0.1*dist_between_nodes))):
+            node_direction = "At node " + str(self.prevNode)
+
+        #if distance from current to first node > 90% of the distance between both nodes
+        elif((dist_from_prev_node > (0.9*dist_between_nodes))):
+            node_direction = "At node " + str(self.nextNode)
+
+            #if distance from current to first node > distance between both nodes
+            if(dist_from_prev_node > dist_between_nodes):
+                self.prevNode = self.nextNode
+                self.nextNode = self.get_next_node()
+
+                if(self.nextNode == -1):
+                    node_direction = "Reached destination!"
+                    destination = 1
+        #if distance from current to first node is >10% but <90% of the distance between both nodes
+        else:
+            node_direction = "Going to node " + str(self.nextNode)
+
+        return (node_direction, destination)
+
+    def locate_position(self, x, y, heading):
+        dist_from_prev_node = self.distance_from_node(x, y, self.prevNode)
+
+        prevNode_x = self.maplist[self.prevNode]['x']
+        prevNode_y = self.maplist[self.prevNode]['y']
+        dist_between_nodes = self.distance_from_node(prevNode_x, prevNode_y, self.nextNode)
+
+        #get exact directions
+        node_direction, turn_direction, walk_direction, destination = self.giving_exact_direction(x, y, heading, self.nextNode)
+        if (node_direction == ""):
+            #get vauge directions
+            node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes)
+        return (node_direction, turn_direction, walk_direction, destination)
+
+    def first_node_coordinates(self):
+        firstNode = self.path[0]
+        firstNode_x = self.maplist[firstNode]['x']
+        firstNode_y = self.maplist[firstNode]['y']
+        return [firstNode_x, firstNode_y]
+
+    #takes in x_coor y_coor macAddr and distance to the accesspoint, checks weather if within the specified distance
     def nearby_wifi(self, x, y, macAddr, range):
         for accesspoint in self.mapfetcher.wifi:
             if (accesspoint['macAddr'] == macAddr):
@@ -144,46 +169,3 @@ class GiveDirections:
                 if (dist_calculated <= range):
                     return True
         return False
-
-    def main(self):
-        bldg = raw_input("Please enter the Building name ")
-        bldg = bldg.upper();
-        lvl = raw_input("Please enter the level ")
-        self.fetch_map(bldg,lvl)
-        start = int(raw_input("Please enter start node "))
-        end = int(raw_input("Please enter end node "))
-        self.calculate_path(start,end)
-        print "The shortest path is"
-        print self.path
-        x_coor = int(raw_input("Please enter the x coordinate "))
-        y_coor = int(raw_input("Please entet the y coordinate "))
-        heading = int(raw_input("Please enter the heading "))
-        self.giving_direction(x_coor,y_coor,heading)
-
-
-
-#Testing
-#
-giveD = GiveDirections()
-
-#giveD.main()
-giveD.fetch_map("COM1", "2")
-giveD.calculate_path(20, 5)
-print giveD.nearby_wifi(2160,2436,'e8:ba:70:61:af:20',200)
-# print giveD.path
-# #print giveD.maplist
-# # print "\ntest1"
-# giveD.giving_direction(8283,1056,0)
-# # print "\ntest2"
-# # giveD.giving_direction(3353,732,0)
-# # print "\ntest3 "
-# # giveD.giving_direction(7065,1787,0)
-# # print "\ntest4"
-# # giveD.giving_direction(7065,1543,0)
-# # print "\ntest5 "
-# # giveD.giving_direction(9460,2802,0)
-#
-# # print giveD.turn_direction([200,100],[400,300])
-# # print giveD.turn_direction2([200,100],[400,100],[200,100])
-# # print giveD.walking_direction([3330,1787],[3330,934])
-# # print giveD.walking_direction([11571,691],[11815,406])

@@ -1,116 +1,32 @@
-﻿from map_fetcher import MapFetcher
-from path_calculator import PathCalculator
-from give_directions import GiveDirections
+﻿from give_directions import GiveDirections
 
 class Navigator:
     def __init__(self):
-        self.mapfetcher = MapFetcher()
-        self.pathcalculator = PathCalculator()
-        self.building = ""
-        self.level = ""
         self.giveDir = GiveDirections()
-        self.lastBroadcast = -1
-        self.northAt = 0
-        self.prevNode = -1
-        self.nextNode = -1 #nextNode = -1 means destination reached
-        #self.position = [0,0]
 
-    
+    #setup map and path
     def calculate_path(self, building, level, start, end):
-        self.building = building
-        self.level = level
-        self.giveDir.fetch_map(building, level)
-        self.giveDir.calculate_path(start, end)
-        self.prevNode = self.giveDir.path[0]#first node
-        self.nextNode = self.giveDir.path[1]#second node
-
-    def get_next_node(self):
-        for i in range(len(self.giveDir.path)):
-            if (self.nextNode == self.giveDir.path[i]):
-                if (i != len(self.giveDir.path)-1):
-                    print self.giveDir.maplist[self.giveDir.path[i+1]]
-                    return self.giveDir.path[i+1]
-                else:
-                    return -1 #reached destination
-        return None #error
+        self.giveDir.fetch_map(building, level, start, end)
+        #in fetch_map, the shortest path is printed
 
     #returns coordinates of the starting node
     #requires the shortest path to be calculated first
     def get_position(self):
-        firstNode = self.giveDir.path[0]
-        firstNode_x = self.giveDir.maplist[firstNode]['x']
-        firstNode_y = self.giveDir.maplist[firstNode]['y']
-        #print firstNode_x
-        #print firstNode_y
-        return [firstNode_x, firstNode_y]
-        #return position
+        return self.giveDir.first_node_coordinates()
 
+    #returns northAt of the map
     def get_northAt(self):
-        self.giveDir.get_northAt()
-        return self.northAt
-    
-    def get_direction(self, x_coor, y_coor, heading):
-        dist_from_prev_node = self.giveDir.distance_from_node(x_coor, y_coor, self.prevNode)
-        #dist_to_next_node = self.giveDir.distance_from_node(x_coor, y_coor, self.nextNode)
-        prevNode_x = self.giveDir.maplist[self.prevNode]['x']
-        prevNode_y = self.giveDir.maplist[self.prevNode]['y']
-        dist_prev_to_next_node = self.giveDir.distance_from_node(prevNode_x, prevNode_y, self.nextNode)
-        node = -1
-        #if distance from current to first node < 10% of the distance away from first node
-        if((dist_from_prev_node < (0.1*dist_prev_to_next_node))):
-            #You are at prev_node. Return this!!!!
-            node = self.prevNode
-            #self.current_node = self.prevNode #prints 'You are near node (num)' (first node)
-            #self.giveDir.giving_direction(x_coor, y_coor, heading, self.nextNode)
-            pass
+        return self.giveDir.northAt
 
-        #if distance from current to second node > 90% of the distance away from first node
-        if((dist_from_prev_node > (0.9*dist_prev_to_next_node))):
-            #return that you are at next node!!!!
-            node = self.nextNode
-            #self.giveDir.current_node(self.nextNode) #prints 'You are near node (nu
-            if(dist_from_prev_node > dist_prev_to_next_node):
-                self.prevNode = self.nextNode
-                self.nextNode = self.get_next_node()
-        
-        turning, distance = self.giveDir.giving_direction(x_coor, y_coor, heading, self.nextNode)
-        #if (distance == -1):
-        #    pass #error/at target node
-        return (turning, distance, node)
+    #returns directions to next node with current coordinates and heading
+    def get_directions(self, x, y, heading):
+        return self.giveDir.locate_position(x, y, heading)
 
-    #testing
-    def main_loop(self): #THIS ASSUMES NODES ARE AT LEAST 2-3m apart
+#testing codes below
+    #def main(self):
+        #self.calculate_path("COM1", "2", "15", "1") #setup
+        #print self.get_directions(8000, 2000, 50)
+        #print self.get_directions(5000, 2000, 60)
 
-        self.prevNode = self.giveDir.path[0] #starting node
-        print self.giveDir.maplist[self.prevNode]
-        self.nextNode = self.giveDir.path[1] #second node
-        print self.giveDir.maplist[self.nextNode]
-
-        while(self.nextNode != -1): #while destination is not reached
-            heading = int(raw_input("Please enter the heading "))
-            x_coor = int(raw_input("Please enter the x coordinate "))
-            y_coor = int(raw_input("Please enter the y coordinate "))
-            self.get_direction(x_coor, y_coor, heading)
-            print self.nextNode
-            print self.prevNode
-        print 'yay'
-
-    def main(self):
-        print "Please enter the Building name "
-        self.bldg = 'com1'#self.userInput.get_input()
-        print "Please enter the level "
-        self.level = 2#self.userInput.get_input()
-        self.giveDir.fetch_map(self.bldg,self.level)
-        print "Please enter start node "
-        start = 15#int(self.userInput.get_input())
-        print "Please enter end node "
-        end = 1#int(self.userInput.get_input())
-        self.giveDir.calculate_path(start,end)
-        print "The shortest path is"
-        print self.giveDir.path
-        self.main_loop()
-
-
-#testing
 #navigator = Navigator()
 #navigator.main()
