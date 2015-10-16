@@ -1,4 +1,4 @@
-import math
+﻿import math
 import matplotlib.pyplot as plt
 from datetime import datetime
 
@@ -36,6 +36,8 @@ class Logic:
         self.northAt = 0
         self.building = ""
         self.level = ""
+        self.start = 0
+        self.end = 0
         self.values = []
         self.dt = 0.0
         self.acc = [0, 0, 0]
@@ -75,14 +77,14 @@ class Logic:
         #get building name etc from user input
         # self.user_input.get_input()
         #input info into navigator
-        # self.navigator.retrieve_map(input info)
-        # self.northAt = self.navigator.get_northAt
+        self.navigator.calculate_path(self.building, self.level, self.start, self.end)
+        self.northAt = self.navigator.get_northAt()
         # DUMMY
-        self.northAt = 315
+        #self.northAt = 315
         #get starting position
-        # self.position = self.navigator.get_position
+        self.position = self.navigator.get_position()
         # DUMMY
-        self.position = [0,0]
+        #self.position = [0,0]
         self.x.append(self.position[0])
         self.y.append(self.position[1])
         #setup timer
@@ -102,18 +104,24 @@ class Logic:
             #get current time in seconds
             current_time = datetime.now().time()
             mricos = current_time.microsecond
-            #print mricos
+            #print micros
 
             #every half second, calculate stuff/check wifi
-            if(abs(mricos - self.loop_timer) >= LOOP_PERIOD):
+            if(abs(micros - self.loop_timer) >= LOOP_PERIOD):
                 self.loop_timer = mricos
                 if(self.loop_action == ACTION_NAVIGATION):
                     #print "navi"
                     self.loop_action = ACTION_WIFI
                     #do navigation
-                        #directions = self.navigator.get_directions()
+                    turning, distance, node = self.navigator.get_direction()
                     #play sounds
-                        #self.audio.play_sound(directions)
+                    #self.audio.play_sound(directions)
+                    if(distance != -1):
+                        print "turn " + str(turning)
+                        print "walk " + str(distance)
+                        if(node != -1):
+                            print "At " + str(node)
+                        
                 elif(self.loop_action == ACTION_WIFI):
                     #print "wifi"
                     #self.signal = self.wifi_finder.is_within_range()

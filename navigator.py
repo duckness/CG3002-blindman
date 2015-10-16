@@ -10,8 +10,19 @@ class Navigator:
         self.level = ""
         self.giveDir = GiveDirections()
         self.lastBroadcast = -1
+        self.northAt = 0
         self.prevNode = -1
         self.nextNode = -1 #nextNode = -1 means destination reached
+        #self.position = [0,0]
+
+    
+    def calculate_path(self, building, level, start, end):
+        self.building = building
+        self.level = level
+        self.giveDir.fetch_map(building, level)
+        self.giveDir.calculate_path(start, end)
+        self.prevNode = self.giveDir.path[0]#first node
+        self.nextNode = self.giveDir.path[1]#second node
 
     def get_next_node(self):
         for i in range(len(self.giveDir.path)):
@@ -32,7 +43,42 @@ class Navigator:
         #print firstNode_x
         #print firstNode_y
         return [firstNode_x, firstNode_y]
+        #return position
 
+    def get_northAt(self):
+        self.giveDir.get_northAt()
+        return self.northAt
+    
+    def get_direction(self, x_coor, y_coor, heading):
+        dist_from_prev_node = self.giveDir.distance_from_node(x_coor, y_coor, self.prevNode)
+        #dist_to_next_node = self.giveDir.distance_from_node(x_coor, y_coor, self.nextNode)
+        prevNode_x = self.giveDir.maplist[self.prevNode]['x']
+        prevNode_y = self.giveDir.maplist[self.prevNode]['y']
+        dist_prev_to_next_node = self.giveDir.distance_from_node(prevNode_x, prevNode_y, self.nextNode)
+        node = -1
+        #if distance from current to first node < 10% of the distance away from first node
+        if((dist_from_prev_node < (0.1*dist_prev_to_next_node))):
+            #You are at prev_node. Return this!!!!
+            node = self.prevNode
+            #self.current_node = self.prevNode #prints 'You are near node (num)' (first node)
+            #self.giveDir.giving_direction(x_coor, y_coor, heading, self.nextNode)
+            pass
+
+        #if distance from current to second node > 90% of the distance away from first node
+        if((dist_from_prev_node > (0.9*dist_prev_to_next_node))):
+            #return that you are at next node!!!!
+            node = self.nextNode
+            #self.giveDir.current_node(self.nextNode) #prints 'You are near node (nu
+            if(dist_from_prev_node > dist_prev_to_next_node):
+                self.prevNode = self.nextNode
+                self.nextNode = self.get_next_node()
+        
+        turning, distance = self.giveDir.giving_direction(x_coor, y_coor, heading, self.nextNode)
+        #if (distance == -1):
+        #    pass #error/at target node
+        return (turning, distance, node)
+
+    #testing
     def main_loop(self): #THIS ASSUMES NODES ARE AT LEAST 2-3m apart
 
         self.prevNode = self.giveDir.path[0] #starting node
@@ -44,28 +90,9 @@ class Navigator:
             heading = int(raw_input("Please enter the heading "))
             x_coor = int(raw_input("Please enter the x coordinate "))
             y_coor = int(raw_input("Please enter the y coordinate "))
-
-            dist_from_prev_node = self.giveDir.distance_from_node(x_coor, y_coor, self.prevNode) #distance from current to first node
-
-            prevNode_x = self.giveDir.maplist[self.prevNode]['x']
-            prevNode_y = self.giveDir.maplist[self.prevNode]['y']
-            dist_prev_to_next_node = self.giveDir.distance_from_node(prevNode_x, prevNode_y, self.nextNode) #distance from first to second node
-
-            #if distance from current to first node < 10% of the distance away from first node
-            if((dist_from_prev_node < (0.1*dist_prev_to_next_node))):
-                self.giveDir.current_node(self.prevNode) #prints 'You are near node (num)' (first node)
-
-            #if distance from current to first node > 10% of the distance away from first node
-            if((dist_from_prev_node > (0.1*dist_prev_to_next_node))) :
-                self.giveDir.giving_direction(x_coor, y_coor, heading, self.nextNode)
-
-            #if distance from current to second node > 90% of the distance away from first node
-            if((dist_from_prev_node > (0.9*dist_prev_to_next_node))):
-                self.giveDir.current_node(self.nextNode) #prints 'You are near node (num)' (second node)
-                self.prevNode = self.nextNode
-                self.nextNode = self.get_next_node()
-                print 'Prev node: ' + str(self.prevNode)
-                print 'Next Node: ' + str(self.nextNode)
+            self.get_direction(x_coor, y_coor, heading)
+            print self.nextNode
+            print self.prevNode
         print 'yay'
 
     def main(self):
@@ -82,6 +109,7 @@ class Navigator:
         print "The shortest path is"
         print self.giveDir.path
         self.main_loop()
+
 
 #testing
 #navigator = Navigator()

@@ -1,4 +1,4 @@
-from map_fetcher import MapFetcher
+﻿from map_fetcher import MapFetcher
 from path_calculator import PathCalculator
 
 import math
@@ -14,6 +14,10 @@ class GiveDirections:
         self.edges = ""
         self.path = ""
         self.northAt = 0
+        self.current_node = -1
+        self.next_node = -1
+        self.prev_node = -1
+        self.end_node = -1
 
     def walking_direction (self, point1, point2):
 
@@ -73,11 +77,15 @@ class GiveDirections:
         self.level = level
         self.maplist, self.edges = self.mapfetcher.fetch_map(
                                     building, level)
-        self.northAt = float(self.mapfetcher.get_info()['northAt'])
+        self.northAt = self.mapfetcher.get_info()
+
+    def get_northAt(self):
+        return self.northAt
 
     def calculate_path(self, start, end):
         self.path = self.pathcalculator.calculate_path(
                     self.maplist, self.edges, start, end)
+
         #print self.maplist
         #print 'Go Straight' #recalibrate here
         for i in range(0,len(self.path)):
@@ -92,8 +100,8 @@ class GiveDirections:
     def distance_from_node(self, x, y, node):
         return math.hypot(x-self.maplist[node]['x'], y-self.maplist[node]['y'])
 
-    def current_node(self, node):
-        print 'You are near node', node
+    #def current_node(self, node):
+    #    print 'You are near node', node
 
     def giving_direction(self, x, y, heading, targetNode):
         def direction_to_node(self, curr_x, curr_y, heading, node_index):
@@ -116,14 +124,15 @@ class GiveDirections:
                 if (targetNode == i):
                     if (_i == len(self.path)-1): #if it is at the end of path array
                         print 'You are at the destination'
-                        return
+                        return (-1, -1)
                     print 'You are on node', targetNode
                     targetNode = self.path[_i+1]
                     targetNodeDist = self.distance_from_node(x,y,targetNode)
                     break
         print 'I am going to node ' + str(targetNode)
-        print self.turn_direction(direction_to_node(self,x,y,heading,targetNode))
+        turning = self.turn_direction(direction_to_node(self,x,y,heading,targetNode))
         print 'Walk %.1f' % (targetNodeDist) + ' centimeters'
+        return (turning, targetNodeDist)
 
 # Takes in x_coor y_coor macAddr and distance to the accesspoint, checks weather if within the specified distance
     def nearby_wifi(self, x, y, macAddr, range):
