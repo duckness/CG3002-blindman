@@ -18,6 +18,8 @@ class Audio:
                        'beep_mid': pygame.mixer.Sound("resources/beep_mid.wav"),
                        'beep_right': pygame.mixer.Sound("resources/beep_right.wav"),
                        'trapped': pygame.mixer.Sound("resources/trapped.wav"),
+                       'near_knee': pygame.mixer.Sound("resources/obstacles_near_knee.wav"),
+                       'step_below': pygame.mixer.Sound("steps_below.wav"),
                        'node': pygame.mixer.Sound("resources/node.wav"),
                        '0': pygame.mixer.Sound("resources/0.wav"),
                        '1': pygame.mixer.Sound("resources/1.wav"),
