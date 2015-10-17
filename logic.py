@@ -1,5 +1,5 @@
 ﻿import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from datetime import datetime
 
 from serial_processor import SerialProcessor
@@ -88,67 +88,58 @@ class Logic:
 
     def setup(self):
         #get building name from user input
-        input = self.user_input.get_input()
-        while(input != "#"):    
-            if(input < "*"):
-                #clear
-                self.audio.play_sound('beep_left')
-                self.building = ""
-            else:
-                self.audio.play_number(input)
-                self.building = self.building + input
-            input = self.user_input.get_input()
-        
+        next_input = ''
+        while(next_input == ''):           
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            #check next input
+            next_input = self.user_input.get_input()
+        self.building = input        
         if(self.building == COM1):
             self.building = "COM1"
         if(self.building == COM2):
             self.building = "COM2"
-        self.audio.play_sound('beep_right')
+        
         #get level from user input
-        input = self.user_input.get_input()
-        while(input != "#"):    
-            if(input < "*"):
-                #clear
-                self.audio.play_sound('beep_left')
-                self.level = ""
-            else:
-                self.audio.play_number(input)
-                self.level = self.level + input
-            input = self.user_input.get_input()
-        self.audio.play_sound('beep_right')
+        input = next_input
+        next_input =  self.user_input.get_input()
+        while(next_input == ''):
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            next_input = self.user_input.get_input()
+        self.level = input
+        
         #get start
-        input = self.user_input.get_input()
-        while(input != "#"):    
-            if(input < "*"):
-                #clear
-                self.audio.play_sound('beep_left')
-                start = ""
-            else:
-                self.audio.play_number(input)
-                start = start + input
-            input = self.user_input.get_input()
-        self.audio.play_sound('beep_right')
-        self.start = int(start)
+        input = next_input
+        next_input =  self.user_input.get_input()
+        while(next_input == ''):
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            next_input = self.user_input.get_input()
+        self.start = int(input)
+        
         #get end
-        input = self.user_input.get_input()
-        while(input != "#"):    
-            if(input < "*"):
-                #clear
-                self.audio.play_sound('beep_left')
-                end = ""
-            else:
-                self.audio.play_number(input)
-                end = end + input
-            input = self.user_input.get_input()
-        self.audio.play_sound('beep_right')
-        self.end = int(end)
-
+        input = next_input
+        next_input =  self.user_input.get_input()
+        while(next_input == ''):
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            next_input = self.user_input.get_input()
+        self.end = int(input)
         print self.building, self.level, str(self.start), str(self.end)
-
         #self.building = raw_input("Please enter building name")
         #self.level = raw_input("Please enter level")
         #self.start = int(raw_input("Please enter start node"))
         #self.end = int(raw_input("Please enter end node"))
+        
         #input info into navigator
         self.navigator.calculate_path(self.building, self.level, self.start, self.end)
         self.northAt = self.navigator.get_northAt()
@@ -160,19 +151,21 @@ class Logic:
         #self.position = [0,0]
         self.x.append(self.position[0])
         self.y.append(self.position[1])
+
+        #set-up serial processing
+        #self.serial_processor.wait_for_ready()
+        print "Ready to recieve data from Mega"
+        
+        #do calibration here?
+        #while(self.done_calibration == False):
+        #    self.get_mega_input()
+        #    if(self.obstacle_calibration_count >= OBSTACLE_CALIBRATION & self.count >= MAX_CALIBRATION_COUNT):
+        #        self.done_calibration = True
+        
         #setup timer
         #get current time in millsec
         current_time = datetime.now().time()
         self.loop_timer = current_time.microsecond
-
-        #set-up serial processing
-        self.serial_processor.wait_for_ready()
-        print "Ready to recieve data from Mega"
-        #do calibration here?
-        while(self.done_calibration == False):
-            self.get_mega_input()
-            if(self.obstacle_calibration_count >= OBSTACLE_CALIBRATION & self.count >= MAX_CALIBRATION_COUNT):
-                self.done_calibration = True
 
     def loop(self):
         while(1):
@@ -220,15 +213,16 @@ class Logic:
                     #self.sensors[3][1] =  raw_input("Enter sensor 4 ")
                     #self.sensor_flag = True
                     #print "wifi"
-                    self.signal = self.wifi_finder.is_within_range()
-                    #print signal
-                    #check with navigation if wifi is true
-                    if (self.signal['is_near'] == True) :
-                        #self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
-                        pass
-                    self.loop_action = ACTION_NAVIGATION
+                    #self.signal = self.wifi_finder.is_within_range()
+                    ##print signal
+                    ##check with navigation if wifi is true
+                    #if (self.signal['is_near'] == True) :
+                    #    #self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                    #    pass
+                    #self.loop_action = ACTION_NAVIGATION
                     #do wifi
                         #check wifi/position
+                    pass
 
 
     def get_mega_input(self):
