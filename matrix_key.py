@@ -1,11 +1,11 @@
-import RPi.GPIO as GPIO
+﻿import RPi.GPIO as GPIO
 import time
 
 
-MATRIX = [[1, 2, 3],
-          [4, 5, 6],
-          [7, 8, 9],
-          ["*", 0, "#"]]
+MATRIX = [['1', '2', '3'],
+          ['4', '5', '6'],
+          ['7', '8', '9'],
+          ['*', '0', '#']]
 ROW = [18, 23, 24, 25]
 COL = [4, 17, 22]
 

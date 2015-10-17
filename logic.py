@@ -28,6 +28,10 @@ MAGIC_THRESHOLD = 1.000001
 MAGIC_DISTANCE = 1.3
 MAGIC_HEADING = 0.75
 
+#user input
+COM1 = "1"
+COM2 = "2"
+
 class Logic:
 
     def __init__(self):
@@ -77,12 +81,56 @@ class Logic:
         self.serial_processor.close_mega()
 
     def setup(self):
-        #get building name etc from user input
-        # self.user_input.get_input()
-        self.building = raw_input("Please enter building name")
-        self.level = raw_input("Please enter level")
-        self.start = int(raw_input("Please enter start node"))
-        self.end = int(raw_input("Please enter end node"))
+        #get building name from user input
+        input = self.user_input.get_input()
+        while(input != "#"):    
+            if(input < "*"):
+                #clear
+                self.building = ""
+            else:
+                self.building = self.building + input
+            input = self.user_input.get_input()
+        
+        if(self.building == COM1):
+            self.building = "COM1"
+        if(self.building == COM2):
+            self.building = "COM2"
+        #get level from user input
+        input = self.user_input.get_input()
+        while(input != "#"):    
+            if(input < "*"):
+                #clear
+                self.level = ""
+            else:
+                self.level = self.level + input
+            input = self.user_input.get_input()
+        #get start
+        input = self.user_input.get_input()
+        while(input != "#"):    
+            if(input < "*"):
+                #clear
+                start = ""
+            else:
+                start = start + input
+            input = self.user_input.get_input()
+        self.start = int(start)
+        #get end
+        input = self.user_input.get_input()
+        while(input != "#"):    
+            if(input < "*"):
+                #clear
+                end = ""
+            else:
+                end = end + input
+            input = self.user_input.get_input()
+        self.end = int(end)
+
+        print self.building, self.level, str(self.start), str(self.end)
+
+        #self.building = raw_input("Please enter building name")
+        #self.level = raw_input("Please enter level")
+        #self.start = int(raw_input("Please enter start node"))
+        #self.end = int(raw_input("Please enter end node"))
         #input info into navigator
         self.navigator.calculate_path(self.building, self.level, self.start, self.end)
         self.northAt = self.navigator.get_northAt()
@@ -132,8 +180,7 @@ class Logic:
                     node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.headings[0]);
                     print node_direction + ", " + turn_direction + ", " + walk_direction
                     if(self.obstruction_flag == False):
-                        pass
-                    
+                        print "play navi"
                     #play sounds
                     #self.audio.play_sound(directions)
                     
@@ -147,7 +194,7 @@ class Logic:
                     #self.sensors[2][0] =  raw_input("Enter sensor 3 ")
                     #self.sensors[2][1] =  raw_input("Enter sensor 3 ")
                     #self.sensors[3][0] =  raw_input("Enter sensor 4 ")
-                    #self.sensors[3][0] =  raw_input("Enter sensor 4 ")
+                    #self.sensors[3][1] =  raw_input("Enter sensor 4 ")
                     #self.sensor_flag = True
                     #print "wifi"
                     self.signal = self.wifi_finder.is_within_range()
