@@ -105,12 +105,16 @@ class GiveDirections:
                         node_direction = "Reached exact destination!"
                         destination = 1
                     else:
-                        node_direction =  "At node " + targetNode + " exactly!"
+                        node_direction =  "At node " + str(targetNode) + " exactly!"
                         targetNode = self.path[_i+1]
                         targetNodeDist = self.distance_from_node(x,y,targetNode)
+
+                        self.prevNode = self.nextNode
+                        self.nextNode = self.get_next_node()
                         break
         else:
             node_direction = "" #to allow the addition of rough/vauge directions
+
         turn_direction = self.turn_direction_to_node(x, y, heading, targetNode)
         walk_direction = "Walk " + str(round(targetNodeDist, 2)) + " centimeters"
         return (node_direction, turn_direction, walk_direction, destination)
@@ -125,8 +129,8 @@ class GiveDirections:
         elif((dist_from_prev_node > (0.9*dist_between_nodes))):
             node_direction = "At node " + str(self.nextNode)
 
-            #if distance from current to first node > distance between both nodes
-            if(dist_from_prev_node > dist_between_nodes):
+            #if distance from current to first node >= distance between both nodes
+            if(dist_from_prev_node >= dist_between_nodes):
                 self.prevNode = self.nextNode
                 self.nextNode = self.get_next_node()
 
@@ -151,6 +155,13 @@ class GiveDirections:
         if (node_direction == ""):
             #get vauge directions
             node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes)
+
+        if(self.nextNode != -1):
+            print "Prev node: " +str(self.prevNode) + ", Info: " + str(self.maplist[self.prevNode])
+            print "Next node: " + str(self.nextNode) + ", Info: " + str(self.maplist[self.nextNode])
+
+        print "-"
+
         return (node_direction, turn_direction, walk_direction, destination)
 
     def first_node_coordinates(self):
