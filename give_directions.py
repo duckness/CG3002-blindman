@@ -59,10 +59,13 @@ class GiveDirections:
     def turning_direction(self, angle):
         if (angle == 0):
             direction = "Go Straight"
+            direction = (2, 0)
         elif (angle < 0):
             direction = "Turn Left by " + str(round(-(angle), 2)) + " degrees"
+            direction = (0, angle)
         else:
             direction = "Turn Right by " + str(round(angle, 2)) + " degrees"
+            direction = (1, angle)
         return direction
 
     def distance_from_node(self, x, y, node):
@@ -102,10 +105,12 @@ class GiveDirections:
 
                 if (targetNode == i):
                     if (_i == len(self.path)-1): #if it is at the end of path array
-                        node_direction = "Reached exact destination!"
+                        node_direction = "Reached exact destination"
+                        node_direction = (2, 0)
                         destination = 1
                     else:
-                        node_direction =  "At node " + str(targetNode) + " exactly!"
+                        node_direction =  "At node " + str(targetNode) + " exactly"
+                        node_direction = (1, targetNode)
                         targetNode = self.path[_i+1]
                         targetNodeDist = self.distance_from_node(x,y,targetNode)
 
@@ -117,6 +122,7 @@ class GiveDirections:
 
         turn_direction = self.turn_direction_to_node(x, y, heading, targetNode)
         walk_direction = "Walk " + str(round(targetNodeDist, 2)) + " centimeters"
+        walk_direction = (round(targetNodeDist, 2))
         return (node_direction, turn_direction, walk_direction, destination)
 
     def giving_vauge_direction(self, dist_from_prev_node, dist_between_nodes):
@@ -124,10 +130,12 @@ class GiveDirections:
         #if distance from current to first node < 10% of the distance between both nodes
         if((dist_from_prev_node < (0.1*dist_between_nodes))):
             node_direction = "At node " + str(self.prevNode)
+            node_direction = (1, self.prevNode)
 
         #if distance from current to first node > 90% of the distance between both nodes
         elif((dist_from_prev_node > (0.9*dist_between_nodes))):
             node_direction = "At node " + str(self.nextNode)
+            node_direction = (1, self.nextNode)
 
             #if distance from current to first node >= distance between both nodes
             if(dist_from_prev_node >= dist_between_nodes):
@@ -135,11 +143,13 @@ class GiveDirections:
                 self.nextNode = self.get_next_node()
 
                 if(self.nextNode == -1):
-                    node_direction = "Reached destination!"
+                    node_direction = "Reached destination"
+                    node_direction = (2, 0)
                     destination = 1
         #if distance from current to first node is >10% but <90% of the distance between both nodes
         else:
             node_direction = "Going to node " + str(self.nextNode)
+            node_direction = (1, self.nextNode)
 
         return (node_direction, destination)
 
@@ -156,11 +166,12 @@ class GiveDirections:
             #get vauge directions
             node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes)
 
-        if(self.nextNode != -1):
-            print "Prev node: " +str(self.prevNode) + ", Info: " + str(self.maplist[self.prevNode])
-            print "Next node: " + str(self.nextNode) + ", Info: " + str(self.maplist[self.nextNode])
+        #testing code below
+        #if(self.nextNode != -1):
+            #print "Prev node: " +str(self.prevNode) + ", Info: " + str(self.maplist[self.prevNode])
+            #print "Next node: " + str(self.nextNode) + ", Info: " + str(self.maplist[self.nextNode])
 
-        print "-"
+        #print "-"
 
         return (node_direction, turn_direction, walk_direction, destination)
 
