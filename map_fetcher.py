@@ -25,7 +25,7 @@ class MapFetcher:
         self.graphcreator = GraphCreator()
         self.maplist = ""
         self.edges = ""
-    
+
     def fetch_map(self, building, level):
         self.building = str(building)
         self.level = str(level)
@@ -86,7 +86,7 @@ class MapFetcher:
         return (self.maplist, self.edges)
     
     def get_info(self):
-        return float(self.info['northAt'])
+        return self.info
 
     def get_wifi(self):
         return self.wifi
