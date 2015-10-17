@@ -20,6 +20,14 @@ class Navigator:
 
     #returns directions to next node with current coordinates and heading
     def get_directions(self, x, y, heading):
+        #directions is made up of (node_direction, turn_direction, walk_direction, destination) respectively
+        #node_direction = (direction, node num) (TUPLE)
+            #(0, num) = At node num, (1, num) = Going to node num, (2, 0) = Reached destination
+        #turn_direction = (direction, degree) (TUPLE)
+            #(0, degree) = Turn left, (1, degree) = Turn right, (2, degree) = Go straight
+        #walk_direction = distance (FLOAT)
+        #destination = check (INT)
+        #1 = reached destination, 0 = have not reached destination
         return self.giveDir.locate_position(x, y, heading)
 
 #testing codes below
