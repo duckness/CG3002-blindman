@@ -60,10 +60,12 @@ class ObstacleCues:
 
     def detect_obstacles(self,obstaclses):
         for i,value in enumerate(obstaclses):
-            if value[1] <= MIN_DISTANCE_us or value[2] <= MIN_DISTANCE_ir :
+            print i, value
+            if value[0] <= MIN_DISTANCE_us or value[1] <= MIN_DISTANCE_ir :
                 alert_direction = self.index_to_direction[i]
-                print "obstacle at" + str(alert_direction)
-                self.audio.play_sound(self.audio.sounds[alert_direction])
+                print "obstacle at " + str(alert_direction)
+                #self.audio.play_sound(self.audio.sounds[alert_direction])
+                self.audio.play_sound(alert_direction)
                 if i == 1 or i == 2:
                     return True
         return False
@@ -106,4 +108,15 @@ class ObstacleCues:
             return True
         return False
 
-
+#obs = ObstacleCues()
+#sensors = [[0,0],[0,0],[0,0],[0,0]]
+#while(1):
+#    sensors[0][0] =  int(raw_input("Enter sensor 1 "))
+#    sensors[0][1] =  int(raw_input("Enter sensor 1 "))
+#    sensors[1][0] =  int(raw_input("Enter sensor 2 "))
+#    sensors[1][1] =  int(raw_input("Enter sensor 2 "))
+#    sensors[2][0] =  int(raw_input("Enter sensor 3 "))
+#    sensors[2][1] =  int(raw_input("Enter sensor 3 "))
+#    sensors[3][0] =  int(raw_input("Enter sensor 4 "))
+#    sensors[3][1] =  int(raw_input("Enter sensor 4 "))
+#    obs.detect_obstacles(sensors)
