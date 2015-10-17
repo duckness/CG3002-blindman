@@ -32,7 +32,7 @@ class Logic:
 
     def __init__(self):
         #init variables
-        self.position = [0,0] # [0,0,0]
+        self.position = [0,0] # [0,0,0] #[x,y]
         self.northAt = 0
         self.building = ""
         self.level = ""
@@ -48,7 +48,10 @@ class Logic:
         self.altitude = 0
         self.temperature = 0
         self.sensors = [[0, 0], [0, 0], [0, 0], [0, 0]] # [ultra,ir]
-        self.signal = ""
+        self.sensor_flag = False
+        self.reroute = False
+        self.obstruction_flag = False
+        self.signal = {}
         self.loop_timer = 0
         self.loop_action = 0
         #init classes
@@ -76,6 +79,10 @@ class Logic:
     def setup(self):
         #get building name etc from user input
         # self.user_input.get_input()
+        self.building = raw_input("Please enter building name")
+        self.level = raw_input("Please enter level")
+        self.start = int(raw_input("Please enter start node"))
+        self.end = int(raw_input("Please enter end node"))
         #input info into navigator
         self.navigator.calculate_path(self.building, self.level, self.start, self.end)
         self.northAt = self.navigator.get_northAt()
@@ -101,32 +108,54 @@ class Logic:
             #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
             self.get_mega_input()
+            
+            if(self.sensor_flag == True):
+
+                self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
+                if(self.obstruction_flag == True):
+                    print "obstruction"
+                    self.reroute = self.obstacle.alt_route(self.sensors)
+                self.sensor_flag = False
+
             #get current time in seconds
             current_time = datetime.now().time()
-            mricos = current_time.microsecond
+            micros = current_time.microsecond
             #print micros
 
             #every half second, calculate stuff/check wifi
             if(abs(micros - self.loop_timer) >= LOOP_PERIOD):
-                self.loop_timer = mricos
+                self.loop_timer = micros
                 if(self.loop_action == ACTION_NAVIGATION):
                     #print "navi"
                     self.loop_action = ACTION_WIFI
                     #do navigation
-                    turning, distance, node = self.navigator.get_direction()
+                    node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.headings[0]);
+                    print node_direction + ", " + turn_direction + ", " + walk_direction
+                    if(self.obstruction_flag == False):
+                        pass
+                    
                     #play sounds
                     #self.audio.play_sound(directions)
-                    if(distance != -1):
-                        print "turn " + str(turning)
-                        print "walk " + str(distance)
-                        if(node != -1):
-                            print "At " + str(node)
+                    
+
                         
                 elif(self.loop_action == ACTION_WIFI):
+                    #self.sensors[0][0] =  raw_input("Enter sensor 1 ")
+                    #self.sensors[0][1] =  raw_input("Enter sensor 1 ")
+                    #self.sensors[1][0] =  raw_input("Enter sensor 2 ")
+                    #self.sensors[1][1] =  raw_input("Enter sensor 2 ")
+                    #self.sensors[2][0] =  raw_input("Enter sensor 3 ")
+                    #self.sensors[2][1] =  raw_input("Enter sensor 3 ")
+                    #self.sensors[3][0] =  raw_input("Enter sensor 4 ")
+                    #self.sensors[3][0] =  raw_input("Enter sensor 4 ")
+                    #self.sensor_flag = True
                     #print "wifi"
-                    #self.signal = self.wifi_finder.is_within_range()
+                    self.signal = self.wifi_finder.is_within_range()
                     #print signal
                     #check with navigation if wifi is true
+                    if (self.signal['is_near'] == True) :
+                        #self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                        pass
                     self.loop_action = ACTION_NAVIGATION
                     #do wifi
                         #check wifi/position
@@ -178,28 +207,28 @@ class Logic:
             # sensor #1
             elif self.raw_data_arr[0] == INPUT_SENSOR_1:
                if(self.parse_sensor_1_input() == True):
-                   pass
+                   self.sensor_flag = True
                else:
                    pass
 
             # sensor #2
             elif self.raw_data_arr[0] == INPUT_SENSOR_2:
                 if(self.parse_sensor_2_input() == True):
-                    pass
+                    self.sensor_flag = True
                 else:
                     pass
 
             # sensor #3
             elif self.raw_data_arr[0] == INPUT_SENSOR_3:
                 if(self.parse_sensor_3_input() == True):
-                    pass
+                    self.sensor_flag = True
                 else:
                     pass
 
             # sensor #4
             elif self. raw_data_arr[0] == INPUT_SENSOR_4:
                 if(self.parse_sensor_4_input() == True):
-                    pass
+                    self.sensor_flag = True
                 else:
                     pass
 

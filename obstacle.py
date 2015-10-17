@@ -1,4 +1,4 @@
-from audio import Audio
+﻿from audio import Audio
 import operator
 
 
@@ -62,10 +62,11 @@ class ObstacleCues:
         for i,value in enumerate(obstaclses):
             if value[1] <= MIN_DISTANCE_us or value[2] <= MIN_DISTANCE_ir :
                 alert_direction = self.index_to_direction[i]
+                print "obstacle at" + str(alert_direction)
                 self.audio.play_sound(self.audio.sounds[alert_direction])
                 if i == 1 or i == 2:
-                    self.alt_route(obstaclses)
-
+                    return True
+        return False
 
     def alt_route(self,distance):
         if not self.detect_ostacle_right(distance[3]):
@@ -74,12 +75,13 @@ class ObstacleCues:
             return True
         #if not self.detect_ostacle_behind(distance[3]):
             #return True
-        self.audio.play_sound(self.audio.sounds['trapped'])
+        self.audio.play_sound(self.audio.sounds['around'])
         return False
 
 
     def detect_ostacle_right(self,distance):
         if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
+            print "turn right"
             self.audio.play_sound(self.audio.sounds['right'])
             self.audio.play_sound(self.audio.sounds['go'])
         else:
@@ -88,6 +90,7 @@ class ObstacleCues:
 
     def detect_ostacle_left(self,distance):
         if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
+            print "turn left"
             self.audio.play_sound(self.audio.sounds['left'])
             self.audio.play_sound(self.audio.sounds['go'])
         else:
@@ -96,6 +99,7 @@ class ObstacleCues:
 
     def detect_ostacle_behind(self,distance):
         if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
+            print "turn around"
             self.audio.play_sound(self.audio.sounds['around'])
             self.audio.play_sound(self.audio.sounds['go'])
         else:
