@@ -28,6 +28,9 @@ MAGIC_THRESHOLD = 1.000001
 MAGIC_DISTANCE = 1.3
 MAGIC_HEADING = 0.75
 
+#calibrate obstacle
+OBSTACLE_CALIBRATION = 5
+
 #user input
 COM1 = "1"
 COM2 = "2"
@@ -58,6 +61,9 @@ class Logic:
         self.signal = {}
         self.loop_timer = 0
         self.loop_action = 0
+        #calibrate obstacle
+        self.done_calibration = False
+        self.obstacle_calibration_count = 0
         #init classes
         self.serial_processor = SerialProcessor()
         self.navigator = Navigator()
@@ -86,8 +92,10 @@ class Logic:
         while(input != "#"):    
             if(input < "*"):
                 #clear
+                self.audio.play_sound('beep_left')
                 self.building = ""
             else:
+                self.audio.play_number(input)
                 self.building = self.building + input
             input = self.user_input.get_input()
         
@@ -95,34 +103,44 @@ class Logic:
             self.building = "COM1"
         if(self.building == COM2):
             self.building = "COM2"
+        self.audio.play_sound('beep_right')
         #get level from user input
         input = self.user_input.get_input()
         while(input != "#"):    
             if(input < "*"):
                 #clear
+                self.audio.play_sound('beep_left')
                 self.level = ""
             else:
+                self.audio.play_number(input)
                 self.level = self.level + input
             input = self.user_input.get_input()
+        self.audio.play_sound('beep_right')
         #get start
         input = self.user_input.get_input()
         while(input != "#"):    
             if(input < "*"):
                 #clear
+                self.audio.play_sound('beep_left')
                 start = ""
             else:
+                self.audio.play_number(input)
                 start = start + input
             input = self.user_input.get_input()
+        self.audio.play_sound('beep_right')
         self.start = int(start)
         #get end
         input = self.user_input.get_input()
         while(input != "#"):    
             if(input < "*"):
                 #clear
+                self.audio.play_sound('beep_left')
                 end = ""
             else:
+                self.audio.play_number(input)
                 end = end + input
             input = self.user_input.get_input()
+        self.audio.play_sound('beep_right')
         self.end = int(end)
 
         print self.building, self.level, str(self.start), str(self.end)
@@ -150,6 +168,11 @@ class Logic:
         #set-up serial processing
         self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
+        #do calibration here?
+        while(self.done_calibration == False):
+            self.get_mega_input()
+            if(self.obstacle_calibration_count >= OBSTACLE_CALIBRATION & self.count >= MAX_CALIBRATION_COUNT):
+                self.done_calibration = True
 
     def loop(self):
         while(1):
@@ -268,7 +291,12 @@ class Logic:
             # sensor #3
             elif self.raw_data_arr[0] == INPUT_SENSOR_3:
                 if(self.parse_sensor_3_input() == True):
-                    self.sensor_flag = True
+                    #calibrate sensors
+                    if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):            
+                        self.obstacle.initial_calibration(sensors[2])
+                        self.obstacle_calibration_count += 1
+                    else:
+                        self.sensor_flag = True
                 else:
                     pass
 
