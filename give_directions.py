@@ -20,13 +20,17 @@ class GiveDirections:
     def fetch_map(self, building, level, start, end):
         self.building = building
         self.level = level
-        self.maplist, self.edges, checkmap = self.mapfetcher.fetch_map(building, level)
-        if(checkmap == 0):
+        self.maplist, self.edges, check_map = self.mapfetcher.fetch_map(building, level)
+        if(check_map == 0):
             self.northAt = float(self.mapfetcher.get_info()['northAt'])
-            self.path = self.pathcalculator.calculate_path(self.maplist, self.edges, start, end)
-            self.prevNode = self.path[0]
-            self.nextNode = self.path[1]
-        return checkmap
+            self.path, check_start_node, check_end_node = self.pathcalculator.calculate_path(self.maplist, self.edges, start, end)
+            if(check_start_node == 0 and check_end_node == 0):
+                self.prevNode = self.path[0]
+                self.nextNode = self.path[1]
+        else: #if map is invalid, set the nodes to be invalid too
+            check_start_node = 1
+            check_end_node = 1
+        return (check_map, check_start_node, check_end_node)
 
     def walking_direction(self, point1, point2):
         if point1[0] < point2[0]:

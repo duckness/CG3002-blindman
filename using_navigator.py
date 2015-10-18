@@ -9,19 +9,26 @@ class UsingNavigator:
         #self.heading = ""
 
     def setup_and_run(self):
-        check_map = self.navigator.calculate_path("COM1", "2", "15", "1")
-        if (check_map == 1):
+        check_map, check_start_node, check_end_node = self.navigator.calculate_path("COM1", "2", "1", "15")
+        if(check_map == 1): #if map is invalid
             print "Invalid map! No data in url"
-        elif(check_map == 2):
+        elif(check_map == 2): #if map is invalid
             print "Invalid map! Does not exist in storage"
-        else:
-            print "Shortest path: " + str(self.navigator.giveDir.path)
-            northAt = self.navigator.get_northAt()
-            #print "northAt: " + str(northAt)
-            starting_position = self.navigator.get_position()
-            print "Starting position: " + str(starting_position)
-            print "-"
-            self.loop()
+        else: #if map is valid
+            if(check_start_node == 1): #if start node is invalid (end node will also be invalid)
+                print "Invalid nodes!"
+            else: #if start node is valid
+                if(check_end_node == 1): #if end node is invalid
+                    print "Invalid end node!"
+                else: #if end node is valid
+                    if(check_start_node == 0 and check_end_node == 0): #if start node and end node are valid
+                        print "Shortest path: " + str(self.navigator.giveDir.path)
+                        northAt = self.navigator.get_northAt()
+                        #print "northAt: " + str(northAt)
+                        starting_position = self.navigator.get_position()
+                        print "Starting position: " + str(starting_position)
+                        print "-"
+                        self.loop()
 
     #node and turn returns TUPLE (x, x), walk returns FLOAT, dest returns INT
     def print_output(self, node, turn, walk, dest):

@@ -22,20 +22,28 @@ class PathCalculator:
         P = {}	# dictionary of predecessors
         Q = PriorityDictionary()   # est.dist. of non-final vert.
         Q[self.start] = 0
-        
-        for v in Q:        
-            D[v] = Q[v]
-            if v == self.end: break
-            links = self.mapList[v]["links"]       
-            for w in links:
-                vwLength = D[v] + self.edges[(v,w)]
-                if w in D:
-                    if vwLength < D[w]:
-                        raise ValueError
-                elif w not in Q or vwLength < Q[w]:
-                    Q[w] = vwLength
-                    P[w] = v   
-        return (D,P)
+
+        try:
+            for v in Q:
+                D[v] = Q[v]
+                if v == self.end: break
+                #START NODE ERROR
+                #START AND END NODE ERROR
+                links = self.mapList[v]["links"]
+                #
+                for w in links:
+                    vwLength = D[v] + self.edges[(v,w)]
+                    if w in D:
+                        if vwLength < D[w]:
+                            raise ValueError
+                    elif w not in Q or vwLength < Q[w]:
+                        Q[w] = vwLength
+                        P[w] = v
+            check_start_node = 0
+        except:
+            check_start_node = 1
+            pass
+        return (D, P, check_start_node)
     
     #Find a single shortest path from the given start vertex
 	#to the given end vertex.
@@ -45,14 +53,25 @@ class PathCalculator:
     def shortest_path(self):
         start = self.start
         end = self.end
-        D,P = self.dijkstra_relaxation()
+        D, P, check_start_node = self.dijkstra_relaxation()
         Path = []
-        while 1:
-            Path.append(end)
-            if end == start: break
-            end = P[end]
-        Path.reverse()
-        return Path
+
+        if(check_start_node == 0):
+            try:
+                while 1:
+                    Path.append(end)
+                    if end == start: break
+                    #END NODE ERROR
+                    end = P[end]
+                    #
+                Path.reverse()
+                check_end_node = 0
+            except:
+                check_end_node = 1
+                pass
+        else:
+            check_end_node = 1 #if start node is invalid, end node will be invalid
+        return (Path, check_start_node, check_end_node)
 
     #given mapList and start and end nodeIds
     #calculates shortest path and returns it
@@ -61,8 +80,8 @@ class PathCalculator:
         self.start = int(start)
         self.end = int(end)
         self.edges = edges
-        self.path = self.shortest_path()
-        return self.path
+        self.path, check_start_node, check_end_node = self.shortest_path()
+        return (self.path, check_start_node, check_end_node)
     
     def get_path(self):
         return self.path

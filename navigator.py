@@ -6,8 +6,11 @@ class Navigator:
 
     #setup map and path
     def calculate_path(self, building, level, start, end):
-        #calculate_path = check_map (INT)
-            #0 = map is valid, 1 = map is invalid (no data in url), 2 = map is invalid (does not exist in storage)
+        #calculate_path = check_map, check_start_node, check_end_node (INT, INT, INT)
+            #check_map: 0 = map is valid, 1 = map is invalid (no data in url), 2 = map is invalid (does not exist in storage)
+            #check_start_node: 0 = start node is valid, 1 = start node is invalid
+            #check_end_node: 0 = end node is valid, 1 = end node is invalid
+        #note: if start node is invalid, end node will be invalid (need start node to calculate end node)
         return self.giveDir.fetch_map(building, level, start, end)
 
     #returns coordinates of the starting node
