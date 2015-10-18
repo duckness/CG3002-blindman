@@ -32,6 +32,7 @@ class MapFetcher:
 
         url = MapFetcher.URL_STANDARD + "Building=" + self.building + "&Level=" + self.level
         count = 0
+        check_map = 0 #map is valid
 
         while(self.info == "" and count < 10):
             try:
@@ -55,8 +56,8 @@ class MapFetcher:
 
                 else:
                     #there is no data in the url!
-                    print "Invalid map! No data in url"
-
+                    #print "Invalid map! No data in url"
+                    check_map = 1
             except: #offline: REQUEST will throw an exception and get into this loop
                 count += 1
 
@@ -74,12 +75,13 @@ class MapFetcher:
 
                     except IOError:
                         #file does not exist!
-                        print "Invalid map! Does not exist in storage"
+                        #print "Invalid map! Does not exist in storage"
+                        check_map = 2
                         pass
-
+            pass
         self.maplist = self.graphcreator.create_maplist(self._map)
         self.edges = self.graphcreator.create_edges()
-        return (self.maplist, self.edges)
+        return (self.maplist, self.edges, check_map)
     
     #possible: implement the creating of the mapList here instead of graphCreator
     def get_map(self):

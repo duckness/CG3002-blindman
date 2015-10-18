@@ -6,8 +6,9 @@ class Navigator:
 
     #setup map and path
     def calculate_path(self, building, level, start, end):
-        self.giveDir.fetch_map(building, level, start, end)
-        #in fetch_map, the shortest path is printed
+        #calculate_path = check_map (INT)
+            #0 = map is valid, 1 = map is invalid (no data in url), 2 = map is invalid (does not exist in storage)
+        return self.giveDir.fetch_map(building, level, start, end)
 
     #returns coordinates of the starting node
     #requires the shortest path to be calculated first

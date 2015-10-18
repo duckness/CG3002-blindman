@@ -8,13 +8,20 @@ class UsingNavigator:
         #self.y = ""
         #self.heading = ""
 
-    def setup(self):
-        self.navigator.calculate_path("COM1", "2", "15", "1")
-        northAt = self.navigator.get_northAt()
-        #print "northAt: " + str(northAt)
-        starting_position = self.navigator.get_position()
-        print "Starting position: " + str(starting_position)
-        print "-"
+    def setup_and_run(self):
+        check_map = self.navigator.calculate_path("COM1", "2", "15", "1")
+        if (check_map == 1):
+            print "Invalid map! No data in url"
+        elif(check_map == 2):
+            print "Invalid map! Does not exist in storage"
+        else:
+            print "Shortest path: " + str(self.navigator.giveDir.path)
+            northAt = self.navigator.get_northAt()
+            #print "northAt: " + str(northAt)
+            starting_position = self.navigator.get_position()
+            print "Starting position: " + str(starting_position)
+            print "-"
+            self.loop()
 
     #node and turn returns TUPLE (x, x), walk returns FLOAT, dest returns INT
     def print_output(self, node, turn, walk, dest):
@@ -82,5 +89,4 @@ class UsingNavigator:
             #print node_direction + ", " + turn_direction + ", " + walk_direction
 
 navi = UsingNavigator()
-navi.setup()
-navi.loop()
+navi.setup_and_run()
