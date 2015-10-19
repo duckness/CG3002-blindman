@@ -8,8 +8,19 @@ MIN_DISTANCE_us = 20
 MIN_DISTANCE_ir = 20
 SENSOR_TOWARDS_GROUND = 2
 AVG_HEIGHT_STAIRS = 15.0
+FRONT_OBSTACLES = 1
+RIGHT_OBSTACLES = 2
+LEFT_OBSTACLES = 3
+OBSTACLE_LOWER = 4
+OBSTACLE_STEP_DOWN= 5
+NO_OBSTACLES = 0
 
+LEFT_PATH_FREE = 1
+RIGHT_PATH_FREE = 2
+BOTH_SIDE_FREE = 3
+NO_ALT_ROUTE = 0
 
+#obstacles left:0, front(u/s): 1, front(i/r): 2,right: 3
 
 """
 Assumption for incoming array
@@ -66,7 +77,6 @@ class ObstacleCues:
         return sum(array)/len(array)
 
     def initial_calibration(self,cali_arr):
-        self.calibrate.append(cali_arr[0])
         self.calibrate.append(cali_arr[1])
         self.avg_height_below = self.calibrate_height_below(self.calibrate)
 
@@ -78,53 +88,70 @@ class ObstacleCues:
                 if i != SENSOR_TOWARDS_GROUND:
                     if value[0] <= MIN_DISTANCE_us or value[1] <= MIN_DISTANCE_ir :
                         alert_direction = self.index_to_direction[i]
-                        print "obstacle at " + str(alert_direction)
+                        #print "obstacle at " + str(alert_direction)
                         #self.audio.play_sound(self.audio.sounds[alert_direction])
                         self.audio.play_sound(alert_direction)
                         if i == 1 or i == 2:
-                            return True
+                            return FRONT_OBSTACLES
+                        """
+                        if i == 0:
+                            return LEFT_OBSTACLES
+                        if i == 3:
+                            return RIGHT_OBSTACLES
+                        """
                 else:
-                    if value[0] <= self.avg_height_below or value[1] <= self.avg_height_below :
+                    if value[1] <= self.avg_height_below :  #i/r sensor
                         alert_direction = self.index_to_direction[i]
-                        print "obstacle at " + str(alert_direction)
+                        #print "obstacle at " + str(alert_direction)
                         #self.audio.play_sound(self.audio.sounds[alert_direction])
                         self.audio.play_sound(alert_direction)
                         self.audio.play_sound('near_knee')
-                    elif (value[0] >= (self.avg_height_below + AVG_HEIGHT_STAIRS)) or value[1] >= (self.avg_height_below + AVG_HEIGHT_STAIRS):
+                        return OBSTACLE_LOWER
+                    elif value[1] >= (self.avg_height_below + AVG_HEIGHT_STAIRS):
                         self.audio.play_sound('step_below')
-        return False
+                        return OBSTACLE_STEP_DOWN
+                    if value[0] <= MIN_DISTANCE_us:
+                        alert_direction = self.index_to_direction[i]
+                        #print "obstacle at " + str(alert_direction)
+                        #self.audio.play_sound(self.audio.sounds[alert_direction])
+                        self.audio.play_sound(alert_direction)
+                        return FRONT_OBSTACLES
+        return NO_OBSTACLES
 
 
 
 
-    def alt_route(self,distance):
+    def alt_route(self,distance):   #
+        obstaclesfound=[1,0,0,0]; #front,left,right,no alt route
         if not self.detect_ostacle_right(distance[3]):
-            return True
+            obstaclesfound[2] = 1
+            obstaclesfound[3] += 1
         if not self.detect_ostacle_left(distance[0]):
-            return True
+            obstaclesfound[1] = 1
+            obstaclesfound[3] += 1
         #if not self.detect_ostacle_behind(distance[3]):
             #return True
-        self.audio.play_sound('around')
-        return False
+        if obstaclesfound[3] == 2:
+            return BOTH_SIDE_FREE
+        elif obstaclesfound[1] == 1:
+            return LEFT_PATH_FREE
+        elif obstaclesfound[2] == 1:
+            return RIGHT_PATH_FREE
+        self.audio.play_sound('around') # THIS IS ONLY CALLED WHEN THERE ARE OBSTACLES RIGHT, LEFT ,FRONT
+        return NO_ALT_ROUTE
 
 
     def detect_ostacle_right(self,distance):
-        if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
-            print "turn right"
-            self.audio.play_sound('right')
-            self.audio.play_sound('go')
-        else:
+        if distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir: # should base on navigation between left and righT
             return True
         return False
 
     def detect_ostacle_left(self,distance):
-        if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
-            print "turn left"
-            self.audio.play_sound('left')
-            self.audio.play_sound('go')
-        else:
+        if distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir: # should base on navigation between left and right
             return True
         return False
+
+    """
 
     def detect_ostacle_behind(self,distance):
         if not (distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir): # should base on navigation between left and right
@@ -134,6 +161,7 @@ class ObstacleCues:
         else:
             return True
         return False
+    """
 
 #obs = ObstacleCues()
 #sensors = [[0,0],[0,0],[0,0],[0,0]]
