@@ -41,7 +41,7 @@ class ObstacleCues:
 
     def __init__(self):
         self.audio = Audio()
-        self.avg_height_below = 0
+        self.avg_height_below = 50
         self.calibrate = []
 
     def get_checksum(self, strn):
@@ -99,7 +99,7 @@ class ObstacleCues:
                             return RIGHT_OBSTACLES
                         """
                 else:
-                    if value[1] <= self.avg_height_below :  #i/r sensor
+                    if value[1] < self.avg_height_below :  #i/r sensor
                         alert_direction = self.index_to_direction[i]
                         #print "obstacle at " + str(alert_direction)
                         #self.audio.play_sound(self.audio.sounds[alert_direction])
@@ -136,7 +136,7 @@ class ObstacleCues:
             return self.LEFT_PATH_FREE
         elif obstaclesfound[2] == 1:
             return self.RIGHT_PATH_FREE
-        self.audio.play_sound('around') # THIS IS ONLY CALLED WHEN THERE ARE OBSTACLES RIGHT, LEFT ,FRONT
+        #self.audio.play_sound('around') # THIS IS ONLY CALLED WHEN THERE ARE OBSTACLES RIGHT, LEFT ,FRONT
         return self.NO_ALT_ROUTE
 
 

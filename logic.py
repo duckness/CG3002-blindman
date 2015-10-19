@@ -127,7 +127,7 @@ class Logic:
         while(1):
             #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
-            self.get_mega_input()
+            #self.get_mega_input()
             
             if(self.sensor_flag == True):
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
@@ -137,8 +137,8 @@ class Logic:
                     elif(self.obstruction_flag == self.obstacle.OBSTACLE_LOWER):
                         print "beware step up!"
                     else:
-                        self.reroute = self.obstacle.alt_route(self.sensors)
-                    self.audio.play_sound('stop')
+                        self.audio.play_sound('stop')
+                        self.reroute = self.obstacle.alt_route(self.sensors)               
                 self.sensor_flag = False
 
             #get current time in seconds
@@ -159,7 +159,7 @@ class Logic:
                     print "Walk distance: " + str(walk_direction)
                     print "Destination Check: " + str(destination)
                     print "-"
-                    if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
+                    if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN): 
                         if(destination == 1):
                             print "you have reached dest"
                             self.audio.play_sound('stop')
@@ -186,18 +186,19 @@ class Logic:
                             self.audio.play_sound(self.index_to_turn[turn])
                         
                 elif(self.loop_action == ACTION_WIFI):
-                    #self.sensors[0][0] =  raw_input("Enter sensor 1 ")
-                    #self.sensors[0][1] =  raw_input("Enter sensor 1 ")
-                    #self.sensors[1][0] =  raw_input("Enter sensor 2 ")
-                    #self.sensors[1][1] =  raw_input("Enter sensor 2 ")
-                    #self.sensors[2][0] =  raw_input("Enter sensor 3 ")
-                    #self.sensors[2][1] =  raw_input("Enter sensor 3 ")
-                    #self.sensors[3][0] =  raw_input("Enter sensor 4 ")
-                    #self.sensors[3][1] =  raw_input("Enter sensor 4 ")
+                    #self.sensors[0][0] =  float(raw_input("Enter sensor 1 "))
+                    #self.sensors[0][1] =  float(raw_input("Enter sensor 1 "))
+                    #self.sensors[1][0] =  float(raw_input("Enter sensor 2 "))
+                    #self.sensors[1][1] =  float(raw_input("Enter sensor 2 "))
+                    #self.sensors[2][0] =  float(raw_input("Enter sensor 3 "))
+                    #self.sensors[2][1] =  float(raw_input("Enter sensor 3 "))
+                    #self.sensors[3][0] =  float(raw_input("Enter sensor 4 "))
+                    #self.sensors[3][1] =  float(raw_input("Enter sensor 4 "))
                     #self.sensor_flag = True
-                    #self.position = [2000, 7000]
-                    #self.headings = [315, 0]
-                    print "wifi"
+                    #self.position[0] = int(raw_input("Enter position x "))
+                    #self.position[1] = int(raw_input("Enter position y "))
+                    #self.headings[0] = float(raw_input("Enter heading "))
+                    #print "wifi"
                     self.signal = self.wifi_finder.is_within_range()
                     #check with navigation if wifi is true
                     if (self.signal['is_near'] == True) :
