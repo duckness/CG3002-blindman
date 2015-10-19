@@ -92,61 +92,14 @@ class Logic:
         self.serial_processor.close_mega()
 
     def setup(self):
-        #get building name from user input
-        next_input = ''
-        while(next_input == ''):           
-            input = self.user_input.get_input()        
-            #ensure input not empty
-            while(input == ''):
-                input = self.user_input.get_input()
-            #check next input
-            next_input = self.user_input.get_input()
-        self.building = input        
-        if(self.building == COM1):
-            self.building = "COM1"
-        if(self.building == COM2):
-            self.building = "COM2"
-        
-        #get level from user input
-        input = next_input
-        next_input =  self.user_input.get_input()
-        while(next_input == ''):
-            input = self.user_input.get_input()        
-            #ensure input not empty
-            while(input == ''):
-                input = self.user_input.get_input()
-            next_input = self.user_input.get_input()
-        self.level = input
-        
-        #get start
-        input = next_input
-        next_input =  self.user_input.get_input()
-        while(next_input == ''):
-            input = self.user_input.get_input()        
-            #ensure input not empty
-            while(input == ''):
-                input = self.user_input.get_input()
-            next_input = self.user_input.get_input()
-        self.start = int(input)
-        
-        #get end
-        input = next_input
-        next_input =  self.user_input.get_input()
-        while(next_input == ''):
-            input = self.user_input.get_input()        
-            #ensure input not empty
-            while(input == ''):
-                input = self.user_input.get_input()
-            next_input = self.user_input.get_input()
-        self.end = int(input)
-        print self.building, self.level, str(self.start), str(self.end)
-        #self.building = raw_input("Please enter building name")
-        #self.level = raw_input("Please enter level")
-        #self.start = int(raw_input("Please enter start node"))
-        #self.end = int(raw_input("Please enter end node"))
-        
+        self.get_user_input()
         #input info into navigator
-        self.navigator.calculate_path(self.building, self.level, self.start, self.end)
+        check_map, check_start_node, check_end_node = self.navigator.calculate_path(self.building, self.level, self.start, self.end)
+        #checking for validity
+        while(check_map != 0 or check_start_node!=0 or check_end_node!=0): #invalid input
+            self.get_user_input()
+            check_map, check_start_node, check_end_node = self.navigator.calculate_path(self.building, self.level, self.start, self.end)
+
         self.northAt = self.navigator.get_northAt()
         # DUMMY
         #self.northAt = 315
@@ -239,6 +192,62 @@ class Logic:
                     #do wifi
                         #check wifi/position
                     pass
+
+    def get_user_input(self):
+        #TODO: have some sound for user input
+        print "Please input building, level etc"
+        #get building name from user input
+        next_input = ''
+        while(next_input == ''):           
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            #check next input
+            next_input = self.user_input.get_input()
+        self.building = input        
+        if(self.building == COM1):
+            self.building = "COM1"
+        if(self.building == COM2):
+            self.building = "COM2"
+        
+        #get level from user input
+        input = next_input
+        next_input =  self.user_input.get_input()
+        while(next_input == ''):
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            next_input = self.user_input.get_input()
+        self.level = input
+        
+        #get start
+        input = next_input
+        next_input =  self.user_input.get_input()
+        while(next_input == ''):
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            next_input = self.user_input.get_input()
+        self.start = int(input)
+        
+        #get end
+        input = next_input
+        next_input =  self.user_input.get_input()
+        while(next_input == ''):
+            input = self.user_input.get_input()        
+            #ensure input not empty
+            while(input == ''):
+                input = self.user_input.get_input()
+            next_input = self.user_input.get_input()
+        self.end = int(input)
+        #self.building = raw_input("Please enter building name")
+        #self.level = raw_input("Please enter level")
+        #self.start = int(raw_input("Please enter start node"))
+        #self.end = int(raw_input("Please enter end node"))
+        print self.building, self.level, str(self.start), str(self.end)
 
 
     def get_mega_input(self):
