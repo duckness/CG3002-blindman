@@ -34,6 +34,9 @@ class Navigator:
         #1 = reached destination, 0 = have not reached destination
         return self.giveDir.locate_position(x, y, heading)
 
+    def check_wifi(self, x, y, macAddr, range):
+        return self.giveDir.nearby_wifi(self, x, y, macAddr, range)
+
 #testing codes below
     #def main(self):
         #self.calculate_path("COM1", "2", "15", "1") #setup

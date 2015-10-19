@@ -183,10 +183,9 @@ class Logic:
                     #self.headings = [315, 0]
                     print "wifi"
                     self.signal = self.wifi_finder.is_within_range()
-                    #print signal
                     #check with navigation if wifi is true
                     if (self.signal['is_near'] == True) :
-                        #self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                        self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
                         pass
                     self.loop_action = ACTION_NAVIGATION
                     #do wifi
