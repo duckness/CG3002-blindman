@@ -29,7 +29,7 @@ MAGIC_DISTANCE = 1.3
 MAGIC_HEADING = 0.75
 
 #calibrate obstacle
-OBSTACLE_CALIBRATION = 5
+#OBSTACLE_CALIBRATION = 5
 
 #user input
 COM1 = "1"
@@ -67,8 +67,8 @@ class Logic:
         self.loop_timer = 0
         self.loop_action = 0
         #calibrate obstacle
-        self.done_calibration = False
-        self.obstacle_calibration_count = 0
+        #self.done_calibration = False
+        #self.obstacle_calibration_count = 0
         #init classes
         self.serial_processor = SerialProcessor()
         self.navigator = Navigator()
@@ -115,10 +115,8 @@ class Logic:
         print "Ready to recieve data from Mega"
         
         #do calibration here?
-        while(self.done_calibration == False):
+        while(self.count <= MAX_CALIBRATION_COUNT):
             self.get_mega_input()
-            if(self.obstacle_calibration_count >= OBSTACLE_CALIBRATION & self.count >= MAX_CALIBRATION_COUNT):
-                self.done_calibration = True
         
         #setup timer
         #get current time in millsec
@@ -310,9 +308,11 @@ class Logic:
             elif self.raw_data_arr[0] == INPUT_SENSOR_3:
                 if(self.parse_sensor_3_input() == True):
                     #calibrate sensors
-                    if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):            
+                    #tie obstacle calibration to imu calibration
+                    if(self.count < MAX_CALIBRATION_COUNT):
+                    #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):            
                         self.obstacle.initial_calibration(sensors[2])
-                        self.obstacle_calibration_count += 1
+                        #self.obstacle_calibration_count += 1
                     else:
                         self.sensor_flag = True
                 else:
