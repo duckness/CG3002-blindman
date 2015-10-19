@@ -8,17 +8,6 @@ MIN_DISTANCE_us = 20
 MIN_DISTANCE_ir = 20
 SENSOR_TOWARDS_GROUND = 2
 AVG_HEIGHT_STAIRS = 15.0
-FRONT_OBSTACLES = 1
-RIGHT_OBSTACLES = 2
-LEFT_OBSTACLES = 3
-OBSTACLE_LOWER = 4
-OBSTACLE_STEP_DOWN= 5
-NO_OBSTACLES = 0
-
-LEFT_PATH_FREE = 1
-RIGHT_PATH_FREE = 2
-BOTH_SIDE_FREE = 3
-NO_ALT_ROUTE = 0
 
 #obstacles left:0, front(u/s): 1, front(i/r): 2,right: 3
 
@@ -31,7 +20,17 @@ Back
 """
 
 class ObstacleCues:
+    FRONT_OBSTACLES = 1
+    RIGHT_OBSTACLES = 2
+    LEFT_OBSTACLES = 3
+    OBSTACLE_LOWER = 4
+    OBSTACLE_STEP_DOWN= 5
+    NO_OBSTACLES = 0
 
+    LEFT_PATH_FREE = 1
+    RIGHT_PATH_FREE = 2
+    BOTH_SIDE_FREE = 3
+    NO_ALT_ROUTE = 0
     # todo: map all the sensors to the location it corresponds
     # fixme: IMO, I think it is simpler to just send the lesser value of the two sensors pointing in the same direction
     index_to_direction = {0: "beep_left",
@@ -92,7 +91,7 @@ class ObstacleCues:
                         #self.audio.play_sound(self.audio.sounds[alert_direction])
                         self.audio.play_sound(alert_direction)
                         if i == 1 or i == 2:
-                            return FRONT_OBSTACLES
+                            return self.FRONT_OBSTACLES
                         """
                         if i == 0:
                             return LEFT_OBSTACLES
@@ -106,17 +105,17 @@ class ObstacleCues:
                         #self.audio.play_sound(self.audio.sounds[alert_direction])
                         self.audio.play_sound(alert_direction)
                         self.audio.play_sound('near_knee')
-                        return OBSTACLE_LOWER
+                        return self.OBSTACLE_LOWER
                     elif value[1] >= (self.avg_height_below + AVG_HEIGHT_STAIRS):
                         self.audio.play_sound('step_below')
-                        return OBSTACLE_STEP_DOWN
+                        return self.OBSTACLE_STEP_DOWN
                     if value[0] <= MIN_DISTANCE_us:
                         alert_direction = self.index_to_direction[i]
                         #print "obstacle at " + str(alert_direction)
                         #self.audio.play_sound(self.audio.sounds[alert_direction])
                         self.audio.play_sound(alert_direction)
-                        return FRONT_OBSTACLES
-        return NO_OBSTACLES
+                        return self.FRONT_OBSTACLES
+        return self.NO_OBSTACLES
 
 
 
@@ -132,13 +131,13 @@ class ObstacleCues:
         #if not self.detect_ostacle_behind(distance[3]):
             #return True
         if obstaclesfound[3] == 2:
-            return BOTH_SIDE_FREE
+            return self.BOTH_SIDE_FREE
         elif obstaclesfound[1] == 1:
-            return LEFT_PATH_FREE
+            return self.LEFT_PATH_FREE
         elif obstaclesfound[2] == 1:
-            return RIGHT_PATH_FREE
+            return self.RIGHT_PATH_FREE
         self.audio.play_sound('around') # THIS IS ONLY CALLED WHEN THERE ARE OBSTACLES RIGHT, LEFT ,FRONT
-        return NO_ALT_ROUTE
+        return self.NO_ALT_ROUTE
 
 
     def detect_ostacle_right(self,distance):

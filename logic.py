@@ -131,10 +131,14 @@ class Logic:
             
             if(self.sensor_flag == True):
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
-                if(self.obstruction_flag == True):
-                    print "obstruction"
+                if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
+                    if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
+                        print "beware step down!"
+                    elif(self.obstruction_flag == self.obstacle.OBSTACLE_LOWER):
+                        print "beware step up!"
+                    else:
+                        self.reroute = self.obstacle.alt_route(self.sensors)
                     self.audio.play_sound('stop')
-                    self.reroute = self.obstacle.alt_route(self.sensors)
                 self.sensor_flag = False
 
             #get current time in seconds
@@ -155,9 +159,9 @@ class Logic:
                     print "Walk distance: " + str(walk_direction)
                     print "Destination Check: " + str(destination)
                     print "-"
-                    if(self.obstruction_flag == False):
+                    if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
                         if(destination == 1):
-                            #you have reached dest
+                            print "you have reached dest"
                             self.audio.play_sound('stop')
                         else:
                             if(node_direction[0] == 0):
@@ -165,7 +169,21 @@ class Logic:
                                 self.audio.play_sound('node')
                                 self.audio.play_number(node_direction[1])
                             #TODO: compare the angle and play turn left abit, turn right abit
-                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])           
+                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])    
+                    else:
+                        if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
+                            if(turn_direction[0] != 2):#follow map direction
+                                self.audio.play_sound(self.index_to_turn[turn_direction[0]])
+                            else:#turn right by default
+                                self.audio.play_sound(self.index_to_turn[1])
+                        elif(self.reroute == self.obstacle.NO_ALT_ROUTE):
+                            self.audio.play_sound('around')
+                        else:
+                            if(self.reroute == self.obstacle.LEFT_PATH_FREE):
+                                turn = 0
+                            else:
+                                turn = 1
+                            self.audio.play_sound(self.index_to_turn[turn])
                         
                 elif(self.loop_action == ACTION_WIFI):
                     #self.sensors[0][0] =  raw_input("Enter sensor 1 ")
