@@ -2,7 +2,7 @@
 #import matplotlib.pyplot as plt
 from datetime import datetime
 
-from serial_processor import SerialProcessor
+#from serial_processor import SerialProcessor
 from navigator import Navigator
 from obstacle import ObstacleCues
 from user_input import UserInput
@@ -30,6 +30,9 @@ MAGIC_HEADING = 0.75
 
 #calibrate obstacle
 #OBSTACLE_CALIBRATION = 5
+
+TIME_WAIT_AT_NODE = 3
+TIME_WAIT_GOING_TO = 10
 
 #user input
 COM1 = "1"
@@ -66,11 +69,13 @@ class Logic:
         self.signal = {}
         self.loop_timer = 0
         self.loop_action = 0
+        self.at_node_count = TIME_WAIT_AT_NODE
+        self.going_to_node_count = TIME_WAIT_GOING_TO
         #calibrate obstacle
         #self.done_calibration = False
         #self.obstacle_calibration_count = 0
         #init classes
-        self.serial_processor = SerialProcessor()
+        #self.serial_processor = SerialProcessor()
         self.navigator = Navigator()
         self.obstacle = ObstacleCues()
         self.user_input = UserInput()
@@ -111,12 +116,12 @@ class Logic:
         self.y.append(self.position[1])
 
         #set-up serial processing
-        self.serial_processor.wait_for_ready()
+        #self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
         
         #do calibration here?
-        while(self.count <= MAX_CALIBRATION_COUNT):
-            self.get_mega_input()
+        #while(self.count <= MAX_CALIBRATION_COUNT):
+        #    self.get_mega_input()
         
         #setup timer
         #get current time in millsec
@@ -130,6 +135,7 @@ class Logic:
             #self.get_mega_input()
             
             if(self.sensor_flag == True):
+                print self.sensors
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
                     if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
@@ -137,6 +143,7 @@ class Logic:
                     elif(self.obstruction_flag == self.obstacle.OBSTACLE_LOWER):
                         print "beware step up!"
                     else:
+                        print "stop"
                         self.audio.play_sound('stop')
                         self.reroute = self.obstacle.alt_route(self.sensors)               
                 self.sensor_flag = False
@@ -164,46 +171,67 @@ class Logic:
                             print "you have reached dest"
                             self.audio.play_sound('stop')
                         else:
+                            pass
+                            #every 10 seconds say where you are walking
+                            #every 2-3 seconds say you are at the node
                             if(node_direction[0] == 0):
-                                #at node, play node ##
-                                self.audio.play_sound('node')
-                                self.audio.play_number(node_direction[1])
-                            #TODO: compare the angle and play turn left abit, turn right abit
-                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])    
+                                self.at_node_count += 1
+                                self.going_to_node_count = TIME_WAIT_GOING_TO
+                                if(self.at_node_count >= TIME_WAIT_AT_NODE):
+                                    #at node, play node ##
+                                    print "at node"
+                                    self.audio.play_sound('node')
+                                    self.audio.play_number(node_direction[1])
+                                    self.at_node_count = 0
+                            elif(node_direction[0] == 1):
+                                self.going_to_node_count += 1
+                                self.at_node_count = TIME_WAIT_AT_NODE
+                                if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
+                                    #TODO:print going to
+                                    print "going to"
+                                    self.audio.play_number(node_direction[1])
+                                    self.going_to_node_count = 0
+                            if(abs(turn_direction[1]) > 30):
+                                self.audio.play_sound(self.index_to_turn[turn_direction[0]])
+                            else:
+                                self.audio.play_sound('go')    
                     else:
                         if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
                             if(turn_direction[0] != 2):#follow map direction
+                                print self.index_to_turn[turn_direction[0]]
                                 self.audio.play_sound(self.index_to_turn[turn_direction[0]])
                             else:#turn right by default
                                 self.audio.play_sound(self.index_to_turn[1])
                         elif(self.reroute == self.obstacle.NO_ALT_ROUTE):
+                            print "around"
                             self.audio.play_sound('around')
                         else:
                             if(self.reroute == self.obstacle.LEFT_PATH_FREE):
                                 turn = 0
                             else:
                                 turn = 1
+                            print self.index_to_turn[turn]
                             self.audio.play_sound(self.index_to_turn[turn])
                         
                 elif(self.loop_action == ACTION_WIFI):
-                    #self.sensors[0][0] =  float(raw_input("Enter sensor 1 "))
-                    #self.sensors[0][1] =  float(raw_input("Enter sensor 1 "))
-                    #self.sensors[1][0] =  float(raw_input("Enter sensor 2 "))
-                    #self.sensors[1][1] =  float(raw_input("Enter sensor 2 "))
-                    #self.sensors[2][0] =  float(raw_input("Enter sensor 3 "))
-                    #self.sensors[2][1] =  float(raw_input("Enter sensor 3 "))
-                    #self.sensors[3][0] =  float(raw_input("Enter sensor 4 "))
-                    #self.sensors[3][1] =  float(raw_input("Enter sensor 4 "))
+                    #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
+                    #self.sensors[0][1] =  int(raw_input("Enter sensor 1 "))
+                    #self.sensors[1][0] =  int(raw_input("Enter sensor 2 "))
+                    #self.sensors[1][1] =  int(raw_input("Enter sensor 2 "))
+                    #self.sensors[2][0] =  int(raw_input("Enter sensor 3 "))
+                    #self.sensors[2][1] =  int(raw_input("Enter sensor 3 "))
+                    #self.sensors[3][0] =  int(raw_input("Enter sensor 4 "))
+                    #self.sensors[3][1] =  int(raw_input("Enter sensor 4 "))
                     #self.sensor_flag = True
                     #self.position[0] = int(raw_input("Enter position x "))
                     #self.position[1] = int(raw_input("Enter position y "))
                     #self.headings[0] = float(raw_input("Enter heading "))
                     #print "wifi"
-                    self.signal = self.wifi_finder.is_within_range()
-                    #check with navigation if wifi is true
-                    if (self.signal['is_near'] == True) :
-                        self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
-                        pass
+                    #self.signal = self.wifi_finder.is_within_range()
+                    ##check with navigation if wifi is true
+                    #if (self.signal['is_near'] == True) :
+                    #    self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                    #    pass
                     self.loop_action = ACTION_NAVIGATION
                     #do wifi
                         #check wifi/position
@@ -328,12 +356,12 @@ class Logic:
                 if(self.parse_sensor_3_input() == True):
                     #calibrate sensors
                     #tie obstacle calibration to imu calibration
-                    if(self.count < MAX_CALIBRATION_COUNT):
+                    #if(self.count < MAX_CALIBRATION_COUNT):
                     #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):            
-                        self.obstacle.initial_calibration(sensors[2])
+                        #self.obstacle.initial_calibration(sensors[2])
                         #self.obstacle_calibration_count += 1
-                    else:
-                        self.sensor_flag = True
+                    #else:
+                    self.sensor_flag = True
                 else:
                     pass
 
@@ -384,8 +412,8 @@ class Logic:
     def parse_sensor_1_input(self):
          if len(self.values) == 2:
             try:
-                self.sensors[0][0] = float(self.values[0])
-                self.sensors[0][1] = float(self.values[1])
+                self.sensors[0][0] = int(self.values[0])
+                self.sensors[0][1] = int(self.values[1])
                 return True
             except ValueError:
                 pass
@@ -394,8 +422,8 @@ class Logic:
     def parse_sensor_2_input(self):
         if len(self.values) == 2:
             try:
-                self.sensors[1][0] = float(self.values[0])
-                self.sensors[1][1] = float(self.values[1])
+                #self.sensors[1][0] = int(self.values[0])
+                #self.sensors[1][1] = int(self.values[1])
                 return True
             except ValueError:
                 pass
@@ -404,8 +432,8 @@ class Logic:
     def parse_sensor_3_input(self):
         if len(self.values) == 2:
             try:
-                self.sensors[2][0] = float(self.values[0])
-                self.sensors[2][1] = float(self.values[1])
+                self.sensors[2][0] = int(self.values[0])
+                self.sensors[2][1] = int(self.values[1])
                 return True
             except ValueError:
                 pass
@@ -414,8 +442,8 @@ class Logic:
     def parse_sensor_4_input(self):
         if len(self.values) == 2:
             try:
-                self.sensors[3][0] = float(self.values[0])
-                self.sensors[3][1] = float(self.values[1])
+                #self.sensors[3][0] = int(self.values[0])
+                self.sensors[3][1] = int(self.values[1])
                 return True
             except ValueError:
                 pass
