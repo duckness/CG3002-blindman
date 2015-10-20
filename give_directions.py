@@ -1,4 +1,4 @@
-from map_fetcher import MapFetcher
+﻿from map_fetcher import MapFetcher
 from path_calculator import PathCalculator
 
 import math
@@ -135,12 +135,12 @@ class GiveDirections:
         #if distance from current to first node < 10% of the distance between both nodes
         if((dist_from_prev_node < (0.1*dist_between_nodes))):
             node_direction = "At node " + str(self.prevNode)
-            node_direction = (1, self.prevNode)
+            node_direction = (0, self.prevNode)
 
         #if distance from current to first node > 90% of the distance between both nodes
         elif((dist_from_prev_node > (0.9*dist_between_nodes))):
             node_direction = "At node " + str(self.nextNode)
-            node_direction = (1, self.nextNode)
+            node_direction = (0, self.nextNode)
 
             #if distance from current to first node >= distance between both nodes
             if(dist_from_prev_node >= dist_between_nodes):
