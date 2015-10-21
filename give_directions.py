@@ -25,8 +25,12 @@ class GiveDirections:
             self.northAt = float(self.mapfetcher.get_info()['northAt'])
             self.path, check_start_node, check_end_node = self.pathcalculator.calculate_path(self.maplist, self.edges, start, end)
             if(check_start_node == 0 and check_end_node == 0):
-                self.prevNode = self.path[0]
-                self.nextNode = self.path[1]
+                if (start == end):
+                    self.prevNode = self.path[0]
+                    self.nextNode = self.path[0]
+                else:
+                    self.prevNode = self.path[0]
+                    self.nextNode = self.path[1]
         else: #if map is invalid, set the nodes to be invalid too
             check_start_node = 1
             check_end_node = 1
@@ -67,7 +71,7 @@ class GiveDirections:
             direction = (2, 0)
         elif (angle < 0):
             direction = "Turn Left by " + str(round(-(angle), 2)) + " degrees"
-            direction = (0, angle)
+            direction = (0, -angle)
         else:
             direction = "Turn Right by " + str(round(angle, 2)) + " degrees"
             direction = (1, angle)
@@ -160,16 +164,22 @@ class GiveDirections:
 
     def locate_position(self, x, y, heading):
         dist_from_prev_node = self.distance_from_node(x, y, self.prevNode)
+        if (self.prevNode == self.nextNode):
+            node_direction = "Reached destination"
+            node_direction = (2, 0)
+            turn_direction = (3, 0)
+            walk_direction = 0
+            destination = 1
+        else:
+            prevNode_x = self.maplist[self.prevNode]['x']
+            prevNode_y = self.maplist[self.prevNode]['y']
+            dist_between_nodes = self.distance_from_node(prevNode_x, prevNode_y, self.nextNode)
 
-        prevNode_x = self.maplist[self.prevNode]['x']
-        prevNode_y = self.maplist[self.prevNode]['y']
-        dist_between_nodes = self.distance_from_node(prevNode_x, prevNode_y, self.nextNode)
-
-        #get exact directions
-        node_direction, turn_direction, walk_direction, destination = self.giving_exact_direction(x, y, heading, self.nextNode)
-        if (node_direction == ""):
-            #get vauge directions
-            node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes)
+            #get exact directions
+            node_direction, turn_direction, walk_direction, destination = self.giving_exact_direction(x, y, heading, self.nextNode)
+            if (node_direction == ""):
+                #get vauge directions
+                node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes)
 
         #testing code below
         #if(self.nextNode != -1):
