@@ -67,7 +67,7 @@ class GiveDirections:
             direction = (2, 0)
         elif (angle < 0):
             direction = "Turn Left by " + str(round(-(angle), 2)) + " degrees"
-            direction = (0, angle)
+            direction = (0, -angle)
         else:
             direction = "Turn Right by " + str(round(angle, 2)) + " degrees"
             direction = (1, angle)
