@@ -44,7 +44,7 @@ LEVEL = "2"
 #calibrate obstacle
 #OBSTACLE_CALIBRATION = 5
 
-TIME_WAIT_AT_NODE = 3
+TIME_WAIT_AT_NODE = 5
 TIME_WAIT_GOING_TO = 10
 
 #user input
@@ -56,6 +56,7 @@ class Logic:
     index_to_turn = {0: "left",
                      1: "right",
                      2: "go",
+                     3: "stop",
                      }
 
     def __init__(self):
@@ -138,7 +139,7 @@ class Logic:
         self.x.append(self.position[0])
         self.y.append(self.position[1])
 
-        #set-up serial processing
+        ##set-up serial processing
         self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
 
@@ -149,8 +150,8 @@ class Logic:
 
         #setup timer
         #get current time in millsec
-        current_time = datetime.now().time()
-        self.loop_timer = current_time.microsecond
+        #current_time = datetime.now().time()
+        #self.loop_timer = current_time.microsecond
 
         # realtime mapping
         self.getMaps()
@@ -160,12 +161,14 @@ class Logic:
         self.line, = self.ax.plot(self.x, self.y, 'ro-')
 
     def loop(self):
-        while(1):
+        destination = 0
+        while(destination == 0):
             #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
             self.get_mega_input()
+            print self.count_navi, self.count_wifi
 
-            if(self.sensor_flag == True):
+            if(self.sensor_flag == True and self.count_imu > COUNT_MAX):
                 #print self.sensors
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
@@ -180,17 +183,17 @@ class Logic:
                 self.sensor_flag = False
 
             #get current time in seconds
-            current_time = datetime.now().time()
-            micros = current_time.microsecond
+            #current_time = datetime.now().time()
+            #micros = current_time.microsecond
             #print micros
 
             #every half second, calculate stuff/check wifi
             # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
-            self.loop_timer = micros
-            if(self.loop_action == ACTION_NAVIGATION and self.count_imu > COUNT_MAX and self.count_navi == NAVI_MAX):
+            #self.loop_timer = micros
+            if(self.count_navi >= NAVI_MAX): #and self.count_imu > COUNT_MAX
                 self.count_navi = 0
                 print "navi"
-                self.loop_action = ACTION_WIFI
+                #self.loop_action = ACTION_WIFI
                 #do navigation
                 if (self.raw_heading == 999):
                     continue
@@ -205,7 +208,6 @@ class Logic:
                         print "you have reached dest"
                         self.audio.play_sound('stop')
                     else:
-                        pass
                         #every 10 seconds say where you are walking
                         #every 2-3 seconds say you are at the node
                         if(node_direction[0] == 0):
@@ -250,7 +252,8 @@ class Logic:
                         print self.index_to_turn[turn]
                         self.audio.play_sound(self.index_to_turn[turn])
 
-            elif(self.loop_action == ACTION_WIFI and self.count_wifi == WIFI_MAX):
+            elif(self.count_wifi >= WIFI_MAX):
+                print "wifi"
                 self.count_wifi = 0
                 #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
                 #self.sensors[0][1] =  int(raw_input("Enter sensor 1 "))
@@ -263,17 +266,17 @@ class Logic:
                 #self.sensor_flag = True
                 #self.position[0] = int(raw_input("Enter position x "))
                 #self.position[1] = int(raw_input("Enter position y "))
-                #self.headings[0] = float(raw_input("Enter heading "))
+                #self.raw_heading = float(raw_input("Enter heading "))
                 #print "wifi"
-                #self.signal = self.wifi_finder.is_within_range()
-                ##check with navigation if wifi is true
-                #if (self.signal['is_near'] == True) :
-                #    self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
-                #    pass
-                self.loop_action = ACTION_NAVIGATION
+                self.signal = self.wifi_finder.is_within_range()
+                #check with navigation if wifi is true
+                if (self.signal['is_near'] == True) :
+                    self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                    pass
+                #self.loop_action = ACTION_NAVIGATION
                 #do wifi
                     #check wifi/position
-                pass
+                
 
             else:
                 self.count_navi += 1
