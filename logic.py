@@ -12,8 +12,7 @@ from wifi_finder import WifiFinder
 
 #constants
 #loop every this number of mricoseconds
-# LOOP_PERIOD = 500000 #500000 = 0.5 seconds
-LOOP_PERIOD = 250000
+LOOP_PERIOD = 500000 #500000 = 0.5 seconds
 ACTION_NAVIGATION = 0
 ACTION_WIFI = 1
 #Mega inputs
@@ -67,6 +66,7 @@ class Logic:
         self.acc = [0, 0, 0]
         self.gyro = [0, 0, 0]
         self.magno = [0, 0, 0]
+        self.raw_heading = 999
         self.headings = []
         self.pressure = 0
         self.altitude = 0
@@ -97,10 +97,11 @@ class Logic:
         self.threshold = 0
         self.avg_heading = 0
         self.distance = 0
-        self.long_distance = 0 # total distance moved
+        self.total_distance = 0 # total distance moved
         self.aggregate = 0
         self.x = []
         self.y = []
+        self.isNewHeading = False
         self.map_x = []
         self.map_y = []
         self.ax = None
@@ -183,7 +184,9 @@ class Logic:
                     print "navi"
                     self.loop_action = ACTION_WIFI
                     #do navigation
-                    node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.headings[0]);
+                    if (self.raw_heading == 999):
+                        continue
+                    node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.raw_heading);
                     print node_direction
                     print turn_direction
                     print "Walk distance: " + str(walk_direction)
@@ -338,21 +341,21 @@ class Logic:
                    else:
                        if self.r > self.limit:
                            self.distance += self.r * G * self.dt * self.dt * DISTANCE_MULTIPLIER * 100
-                           print self.distance
+                        #    print self.distance
                else:
                     pass
 
             # heading
             elif self.raw_data_arr[0] == INPUT_HEADING:
                 if(self.parse_heading_input() == True):
-
                     # bundle readings of headings
-                    if self.aggregate == AGGREGATE_LIMIT:
-                        if self.count > COUNT_MAX:
+                    if self.aggregate == AGGREGATE_LIMIT and self.count > COUNT_MAX:
                             self.isNewHeading = True
-                        self.aggregate = 0
+                            self.aggregate = 0
                     else:
                         self.aggregate += 1
+                        if (self.count <= COUNT_MAX):
+                            self.aggregate = 0
 
                     # 1 bundle awaiting after the calibration is done
                     if self.isNewHeading == True:
@@ -362,14 +365,14 @@ class Logic:
                         # aggregate the average headings
                         for heading in self.headings:
                             self.avg_heading += heading;
-                        self.avg_heading /= len(headings)
-                        self.avg_heading += headings[len(headings)/2]
+                        self.avg_heading /= len(self.headings)
+                        self.avg_heading += self.headings[len(self.headings)/2]
                         self.avg_heading /= 2
 
                         # get the position based on previous position
                         offset = self.get_coord()
-                        self.x.append[self.x[-1] + offset[0]]
-                        self.y.append[self.y[-1] + offset[1]]
+                        self.x.append(self.x[-1] + offset[0])
+                        self.y.append(self.y[-1] + offset[1])
                         self.position[0] = self.x[-1]
                         self.position[1] = self.y[-1]
 
@@ -377,7 +380,8 @@ class Logic:
                         self.total_distance += self.distance
                         self.headings = []
                         self.distance = 0
-
+                        # print self.total_distance
+                        print "YAHOOOOOOOOOOOOOOOOOO", (self.x[-1], self.y[-1])
                         self.line.set_xdata(self.x)
                         self.line.set_ydata(self.y)
                         self.ax.relim()
@@ -460,10 +464,11 @@ class Logic:
     def parse_heading_input(self):
         if len(self.values) == 1:
             try:
-                raw_heading = float(self.values[0])
-                multiplier = round(raw_heading/HEADING_PER_UNIT, 0)
-                raw_heading = multiplier * HEADING_PER_UNIT
-                self.headings.append(raw_heading)
+                self.raw_heading = float(self.values[0])
+                multiplier = round(self.raw_heading/HEADING_PER_UNIT, 0)
+                aggregate_heading = multiplier * HEADING_PER_UNIT
+                self.headings.append(aggregate_heading)
+                return True
             except ValueError:
                 pass
         return False
@@ -548,7 +553,8 @@ class Logic:
 
     def getMaps(self):
         coord = []
-        url = "http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=COM" + self.building + "&Level=" + self.level
+        URL_STANDARD = "http://ShowMyWay.comp.nus.edu.sg/getMapInfo.php?"
+        url = URL_STANDARD + "Building=" + self.building + "&Level=" + self.level
 
         try:
             REQUEST = requests.get(url)
@@ -559,6 +565,7 @@ class Logic:
                 for node in local_map:
                     self.map_x.append(int(node['x']))
                     self.map_y.append(int(node['y']))
+            print url
         except:
             pass
 
