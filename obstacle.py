@@ -6,8 +6,8 @@ import math
 # the minimum distance in cm needed to an object before the beep will start triggering
 MIN_DISTANCE_us = 30
 MIN_DISTANCE_ir = 40
-SENSOR_TOWARDS_GROUND = 4
-AVG_HEIGHT_STAIRS = 15.0
+SENSOR_TOWARDS_GROUND = 1
+AVG_HEIGHT_STAIRS = 15
 
 #obstacles left:0, front(u/s): 1, front(i/r): 2,right: 3
 
@@ -78,6 +78,7 @@ class ObstacleCues:
     def initial_calibration(self,cali_arr):
         self.calibrate.append(cali_arr[1])
         self.avg_height_below = self.calibrate_height_below(self.calibrate)
+        print self.avg_height_below
 
 
     def detect_obstacles(self,obstacles):
@@ -100,7 +101,7 @@ class ObstacleCues:
                         return RIGHT_OBSTACLES
                     """
             else:
-                if value[1] < self.avg_height_below :  #i/r sensor
+                if abs(value[1] - self.avg_height_below) > 20 :  #i/r sensor
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #self.audio.play_sound(self.audio.sounds[alert_direction])
@@ -117,9 +118,6 @@ class ObstacleCues:
                     self.audio.play_sound(alert_direction)
                     return self.FRONT_OBSTACLES
         return self.NO_OBSTACLES
-
-
-
 
     def alt_route(self,distance):   #
         obstaclesfound=[1,0,0,0]; #front,left,right,no alt route
