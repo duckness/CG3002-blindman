@@ -2,6 +2,7 @@
 import matplotlib.pyplot as plt
 from datetime import datetime
 import requests
+import json
 
 from serial_processor import SerialProcessor
 from navigator import Navigator
@@ -15,6 +16,9 @@ from wifi_finder import WifiFinder
 LOOP_PERIOD = 500000 #500000 = 0.5 seconds
 ACTION_NAVIGATION = 0
 ACTION_WIFI = 1
+NAVI_MAX = 10
+WIFI_MAX = 100
+
 #Mega inputs
 INPUT_IMU      = "00"
 INPUT_HEADING  = "01"
@@ -28,6 +32,7 @@ HEADING_PER_UNIT = 22.5
 HEADING_DRIFT = 45
 DISTANCE_MULTIPLIER = 1.75
 MAP_DISTANCE_MULTIPLIER = 1.25
+MAP_DISTANCE_MULTIPLIER = 1.8
 COUNT_MAX = 200
 LIMIT_MULTIPLIER = 1.000001
 # LIMIT_MULTIPLIER = 1.09
@@ -90,10 +95,12 @@ class Logic:
         self.user_input = UserInput()
         self.audio = Audio()
         self.wifi_finder = WifiFinder()
+        self.count_wifi = 0
+        self.count_navi = 0
         #init dist calculation
         self.r = 0
         self.limit = 0
-        self.count = 0
+        self.count_imu = 0
         self.threshold = 0
         self.avg_heading = 0
         self.distance = 0
@@ -137,7 +144,7 @@ class Logic:
 
         #TODO: self.audio.play_sound("calibrating")
         #do calibration here?
-        # while(self.count <= COUNT_MAX):
+        # while(self.count_imu <= COUNT_MAX):
         #     self.get_mega_input()
 
         #setup timer
@@ -178,92 +185,99 @@ class Logic:
             #print micros
 
             #every half second, calculate stuff/check wifi
-            if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
-                self.loop_timer = micros
-                if(self.loop_action == ACTION_NAVIGATION and self.count > COUNT_MAX):
-                    print "navi"
-                    self.loop_action = ACTION_WIFI
-                    #do navigation
-                    if (self.raw_heading == 999):
-                        continue
-                    node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.raw_heading);
-                    print node_direction
-                    print turn_direction
-                    print "Walk distance: " + str(walk_direction)
-                    print "Destination Check: " + str(destination)
-                    print "-"
-                    if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
-                        if(destination == 1):
-                            print "you have reached dest"
-                            self.audio.play_sound('stop')
-                        else:
-                            pass
-                            #every 10 seconds say where you are walking
-                            #every 2-3 seconds say you are at the node
-                            if(node_direction[0] == 0):
-                                self.at_node_count += 1
-                                self.going_to_node_count = TIME_WAIT_GOING_TO
-                                if(self.at_node_count >= TIME_WAIT_AT_NODE):
-                                    #at node, play node ##
-                                    print "at node"
-                                    self.audio.play_sound('node')
-                                    self.audio.play_number(node_direction[1])
-                                    self.at_node_count = 0
-                            elif(node_direction[0] == 1):
-                                self.going_to_node_count += 1
-                                self.at_node_count = TIME_WAIT_AT_NODE
-                                if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
-                                    #TODO:print going to
-                                    print "going to"
-                                    self.audio.play_number(node_direction[1])
-                                    self.going_to_node_count = 0
-                            #delay sound for this section
-                            if(abs(turn_direction[1]) > 30):
-                                self.audio.play_sound(self.index_to_turn[turn_direction[0]])
-                            else:
-                                print "go"
-                                #self.audio.play_sound('go')
+            # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
+            self.loop_timer = micros
+            if(self.loop_action == ACTION_NAVIGATION and self.count_imu > COUNT_MAX and self.count_navi == NAVI_MAX):
+                self.count_navi = 0
+                print "navi"
+                self.loop_action = ACTION_WIFI
+                #do navigation
+                if (self.raw_heading == 999):
+                    continue
+                node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.raw_heading);
+                print node_direction
+                print turn_direction
+                print "Walk distance: " + str(walk_direction)
+                print "Destination Check: " + str(destination)
+                print "-"
+                if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
+                    if(destination == 1):
+                        print "you have reached dest"
+                        self.audio.play_sound('stop')
                     else:
-                        if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
-                            if(turn_direction[0] != 2):#follow map direction
-                                print self.index_to_turn[turn_direction[0]]
-                                self.audio.play_sound(self.index_to_turn[turn_direction[0]])
-                            else:#turn right by default
-                                self.audio.play_sound(self.index_to_turn[1])
-                        elif(self.reroute == self.obstacle.NO_ALT_ROUTE):
-                            print "around"
-                            self.audio.play_sound('around')
+                        pass
+                        #every 10 seconds say where you are walking
+                        #every 2-3 seconds say you are at the node
+                        if(node_direction[0] == 0):
+                            self.at_node_count += 1
+                            self.going_to_node_count = TIME_WAIT_GOING_TO
+                            if(self.at_node_count >= TIME_WAIT_AT_NODE):
+                                #at node, play node ##
+                                print "at node"
+                                self.audio.play_sound('node')
+                                self.audio.play_number(node_direction[1])
+                                self.at_node_count = 0
+                        elif(node_direction[0] == 1):
+                            self.going_to_node_count += 1
+                            self.at_node_count = TIME_WAIT_AT_NODE
+                            if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
+                                #TODO:print going to
+                                print "going to"
+                                self.audio.play_number(node_direction[1])
+                                self.going_to_node_count = 0
+                        #delay sound for this section
+                        if(abs(turn_direction[1]) > 30):
+                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])
                         else:
-                            if(self.reroute == self.obstacle.LEFT_PATH_FREE):
-                                turn = 0
-                            else:
-                                turn = 1
-                            print self.index_to_turn[turn]
-                            self.audio.play_sound(self.index_to_turn[turn])
+                            print "go"
+                            #self.audio.play_sound('go')
+                else:
+                    print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
+                    if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
+                        if(turn_direction[0] != 2):#follow map direction
+                            print self.index_to_turn[turn_direction[0]]
+                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])
+                        else:#turn right by default
+                            self.audio.play_sound(self.index_to_turn[1])
+                    elif(self.reroute == self.obstacle.NO_ALT_ROUTE):
+                        print "around"
+                        self.audio.play_sound('around')
+                    else:
+                        if(self.reroute == self.obstacle.LEFT_PATH_FREE):
+                            turn = 0
+                        else:
+                            turn = 1
+                        print self.index_to_turn[turn]
+                        self.audio.play_sound(self.index_to_turn[turn])
 
-                elif(self.loop_action == ACTION_WIFI):
-                    #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
-                    #self.sensors[0][1] =  int(raw_input("Enter sensor 1 "))
-                    #self.sensors[1][0] =  int(raw_input("Enter sensor 2 "))
-                    #self.sensors[1][1] =  int(raw_input("Enter sensor 2 "))
-                    #self.sensors[2][0] =  int(raw_input("Enter sensor 3 "))
-                    #self.sensors[2][1] =  int(raw_input("Enter sensor 3 "))
-                    #self.sensors[3][0] =  int(raw_input("Enter sensor 4 "))
-                    #self.sensors[3][1] =  int(raw_input("Enter sensor 4 "))
-                    #self.sensor_flag = True
-                    #self.position[0] = int(raw_input("Enter position x "))
-                    #self.position[1] = int(raw_input("Enter position y "))
-                    #self.headings[0] = float(raw_input("Enter heading "))
-                    #print "wifi"
-                    #self.signal = self.wifi_finder.is_within_range()
-                    ##check with navigation if wifi is true
-                    #if (self.signal['is_near'] == True) :
-                    #    self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
-                    #    pass
-                    self.loop_action = ACTION_NAVIGATION
-                    #do wifi
-                        #check wifi/position
-                    pass
+            elif(self.loop_action == ACTION_WIFI and self.count_wifi == WIFI_MAX):
+                self.count_wifi = 0
+                #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
+                #self.sensors[0][1] =  int(raw_input("Enter sensor 1 "))
+                #self.sensors[1][0] =  int(raw_input("Enter sensor 2 "))
+                #self.sensors[1][1] =  int(raw_input("Enter sensor 2 "))
+                #self.sensors[2][0] =  int(raw_input("Enter sensor 3 "))
+                #self.sensors[2][1] =  int(raw_input("Enter sensor 3 "))
+                #self.sensors[3][0] =  int(raw_input("Enter sensor 4 "))
+                #self.sensors[3][1] =  int(raw_input("Enter sensor 4 "))
+                #self.sensor_flag = True
+                #self.position[0] = int(raw_input("Enter position x "))
+                #self.position[1] = int(raw_input("Enter position y "))
+                #self.headings[0] = float(raw_input("Enter heading "))
+                #print "wifi"
+                #self.signal = self.wifi_finder.is_within_range()
+                ##check with navigation if wifi is true
+                #if (self.signal['is_near'] == True) :
+                #    self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                #    pass
+                self.loop_action = ACTION_NAVIGATION
+                #do wifi
+                    #check wifi/position
+                pass
+
+            else:
+                self.count_navi += 1
+                self.count_wifi += 1
 
     def get_user_input(self):
         #TODO: have some sound for user input
@@ -336,7 +350,7 @@ class Logic:
                if (self.parse_IMU_input() == True):
                    self.r = math.sqrt(self.acc[0]*self.acc[0] + self.acc[1]*self.acc[1] + self.acc[2]*self.acc[2])
 
-                   if self.count <= COUNT_MAX:
+                   if self.count_imu <= COUNT_MAX:
                        self.calibrate_threshold()
                    else:
                        if self.r > self.limit:
@@ -349,12 +363,12 @@ class Logic:
             elif self.raw_data_arr[0] == INPUT_HEADING:
                 if(self.parse_heading_input() == True):
                     # bundle readings of headings
-                    if self.aggregate == AGGREGATE_LIMIT and self.count > COUNT_MAX:
+                    if self.aggregate == AGGREGATE_LIMIT and self.count_imu > COUNT_MAX:
                             self.isNewHeading = True
                             self.aggregate = 0
                     else:
                         self.aggregate += 1
-                        if (self.count <= COUNT_MAX):
+                        if (self.count_imu <= COUNT_MAX):
                             self.aggregate = 0
 
                     # 1 bundle awaiting after the calibration is done
@@ -381,7 +395,7 @@ class Logic:
                         self.headings = []
                         self.distance = 0
                         # print self.total_distance
-                        print "YAHOOOOOOOOOOOOOOOOOO", (self.x[-1], self.y[-1])
+                        print "\t\t\t\t\tLOCATION", (self.x[-1], self.y[-1])
                         self.line.set_xdata(self.x)
                         self.line.set_ydata(self.y)
                         self.ax.relim()
@@ -410,7 +424,7 @@ class Logic:
                 if(self.parse_sensor_2_input() == True):
                     #calibrate sensors
                     #tie obstacle calibration to imu calibration
-                    if(self.count < COUNT_MAX):
+                    if(self.count_imu < COUNT_MAX):
                     #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):
                         self.obstacle.initial_calibration(self.sensors[1])
                         #self.obstacle_calibration_count += 1
@@ -514,13 +528,13 @@ class Logic:
         return False
 
     def calibrate_threshold(self):
-        if (self.count < COUNT_MAX):
-            if (self.count == 0):
+        if (self.count_imu < COUNT_MAX):
+            if (self.count_imu == 0):
                 print "Calibrating..."
-            self.count += 1
+            self.count_imu += 1
             self.limit = max(self.limit, self.r)
-        elif (self.count == COUNT_MAX):
-            self.count += 1
+        elif (self.count_imu == COUNT_MAX):
+            self.count_imu += 1
             print "Ready!: ",
             print self.limit,
             self.limit *= LIMIT_MULTIPLIER
