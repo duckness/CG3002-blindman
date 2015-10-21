@@ -84,10 +84,10 @@ class ObstacleCues:
         #self.min_height_breathe = array[0]
         #for values in array:
         if value > self.max_height_breathe:
-            self.max_height_breathe = values
+            self.max_height_breathe = value * 1.05
         if value < self.min_height_breathe:
-            self.min_height_breathe = values
-        
+            self.min_height_breathe = value * 0.95
+
     def initial_calibration(self,cali_arr):
         #self.calibrate.append(cali_arr[1])
         self.calibrate_max(cali_arr[1])
