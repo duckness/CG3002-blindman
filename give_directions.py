@@ -136,13 +136,13 @@ class GiveDirections:
 
     def giving_vauge_direction(self, dist_from_prev_node, dist_between_nodes):
         destination = 0
-        #if distance from current to first node < 10% of the distance between both nodes
-        if((dist_from_prev_node < (0.1*dist_between_nodes))):
+        #if distance from current to first node < 10% (20%) of the distance between both nodes
+        if((dist_from_prev_node < (0.2*dist_between_nodes))):
             node_direction = "At node " + str(self.prevNode)
             node_direction = (0, self.prevNode)
 
-        #if distance from current to first node > 90% of the distance between both nodes
-        elif((dist_from_prev_node > (0.9*dist_between_nodes))):
+        #if distance from current to first node > 90% (80%) of the distance between both nodes
+        elif((dist_from_prev_node > (0.8*dist_between_nodes))):
             node_direction = "At node " + str(self.nextNode)
             node_direction = (0, self.nextNode)
 
