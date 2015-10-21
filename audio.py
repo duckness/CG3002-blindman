@@ -43,10 +43,13 @@ class Audio:
         number = str(node_number)
         channel = self.sounds[number[0]].play(loops=0)
         if len(number) > 1:
-            channel.queue(self.sounds[number[1]])
+            try:
+                channel.queue(self.sounds[number[1]])
+            except:
+                pass
 
 
-# a = Audio()
+#  a = Audio()
 # a.play_sound('around')
-# a.play_number(12)
-# time.sleep(20)
+#  a.play_number(12)
+#  time.sleep(20)
