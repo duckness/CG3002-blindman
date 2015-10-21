@@ -1,6 +1,7 @@
 ﻿import math
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from datetime import datetime
+import requests
 
 #from serial_processor import SerialProcessor
 from navigator import Navigator
@@ -23,10 +24,17 @@ INPUT_SENSOR_3 = "12"
 INPUT_SENSOR_4 = "13"
 #POS magic
 G = 9.81
-MAX_CALIBRATION_COUNT = 200
-MAGIC_THRESHOLD = 1.000001
-MAGIC_DISTANCE = 1.3
-MAGIC_HEADING = 0.75
+HEADING_PER_UNIT = 22.5
+HEADING_DRIFT = 45
+DISTANCE_MULTIPLIER = 1.75
+MAP_DISTANCE_MULTIPLIER = 1.25
+COUNT_MAX = 200
+LIMIT_MULTIPLIER = 1.000001
+# LIMIT_MULTIPLIER = 1.09
+LIMIT_MULTIPLIER = 1.01
+AGGREGATE_LIMIT = 0
+BUILDING = "COM1"
+LEVEL = "2"
 
 #calibrate obstacle
 #OBSTACLE_CALIBRATION = 5
@@ -58,7 +66,7 @@ class Logic:
         self.acc = [0, 0, 0]
         self.gyro = [0, 0, 0]
         self.magno = [0, 0, 0]
-        self.headings = [0, 0] # [current,previous]
+        self.headings = []
         self.pressure = 0
         self.altitude = 0
         self.temperature = 0
@@ -83,13 +91,19 @@ class Logic:
         self.wifi_finder = WifiFinder()
         #init dist calculation
         self.r = 0
+        self.limit = 0
         self.count = 0
         self.threshold = 0
-        self.short_distance = 0
-        self.long_distance = 0 # total distance moved
         self.avg_heading = 0
+        self.distance = 0
+        self.long_distance = 0 # total distance moved
+        self.aggregate = 0
         self.x = []
         self.y = []
+        self.map_x = []
+        self.map_y = []
+        self.ax = None
+        self.line = None
 
     def main(self):
         self.setup()
@@ -118,22 +132,30 @@ class Logic:
         #set-up serial processing
         #self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
-        
+
         #do calibration here?
         #while(self.count <= MAX_CALIBRATION_COUNT):
         #    self.get_mega_input()
-        
+
         #setup timer
         #get current time in millsec
         current_time = datetime.now().time()
         self.loop_timer = current_time.microsecond
+
+        # realtime mapping
+        self.getMaps()
+        plt.ion()
+        self.ax = plt.gca()
+        # ax.set_autoscale_on(True)
+        plt.plot(self.map_x, self.map_y, 'bo')
+        self.line, = self.ax.plot(self.x, self.y, 'ro-')
 
     def loop(self):
         while(1):
             #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
             #self.get_mega_input()
-            
+
             if(self.sensor_flag == True):
                 print self.sensors
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
@@ -145,7 +167,7 @@ class Logic:
                     else:
                         print "stop"
                         self.audio.play_sound('stop')
-                        self.reroute = self.obstacle.alt_route(self.sensors)               
+                        self.reroute = self.obstacle.alt_route(self.sensors)
                 self.sensor_flag = False
 
             #get current time in seconds
@@ -166,7 +188,7 @@ class Logic:
                     print "Walk distance: " + str(walk_direction)
                     print "Destination Check: " + str(destination)
                     print "-"
-                    if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN): 
+                    if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
                         if(destination == 1):
                             print "you have reached dest"
                             self.audio.play_sound('stop')
@@ -194,7 +216,7 @@ class Logic:
                             if(abs(turn_direction[1]) > 30):
                                 self.audio.play_sound(self.index_to_turn[turn_direction[0]])
                             else:
-                                self.audio.play_sound('go')    
+                                self.audio.play_sound('go')
                     else:
                         if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
                             if(turn_direction[0] != 2):#follow map direction
@@ -212,7 +234,7 @@ class Logic:
                                 turn = 1
                             print self.index_to_turn[turn]
                             self.audio.play_sound(self.index_to_turn[turn])
-                        
+
                 elif(self.loop_action == ACTION_WIFI):
                     #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
                     #self.sensors[0][1] =  int(raw_input("Enter sensor 1 "))
@@ -242,46 +264,46 @@ class Logic:
         print "Please input building, level etc"
         #get building name from user input
         next_input = ''
-        while(next_input == ''):           
-            input = self.user_input.get_input()        
+        while(next_input == ''):
+            input = self.user_input.get_input()
             #ensure input not empty
             while(input == ''):
                 input = self.user_input.get_input()
             #check next input
             next_input = self.user_input.get_input()
-        self.building = input        
+        self.building = input
         if(self.building == COM1):
             self.building = "COM1"
         if(self.building == COM2):
             self.building = "COM2"
-        
+
         #get level from user input
         input = next_input
         next_input =  self.user_input.get_input()
         while(next_input == ''):
-            input = self.user_input.get_input()        
+            input = self.user_input.get_input()
             #ensure input not empty
             while(input == ''):
                 input = self.user_input.get_input()
             next_input = self.user_input.get_input()
         self.level = input
-        
+
         #get start
         input = next_input
         next_input =  self.user_input.get_input()
         while(next_input == ''):
-            input = self.user_input.get_input()        
+            input = self.user_input.get_input()
             #ensure input not empty
             while(input == ''):
                 input = self.user_input.get_input()
             next_input = self.user_input.get_input()
         self.start = int(input)
-        
+
         #get end
         input = next_input
         next_input =  self.user_input.get_input()
         while(next_input == ''):
-            input = self.user_input.get_input()        
+            input = self.user_input.get_input()
             #ensure input not empty
             while(input == ''):
                 input = self.user_input.get_input()
@@ -308,26 +330,56 @@ class Logic:
                if (self.parse_IMU_input() == True):
                    self.r = math.sqrt(self.acc[0]*self.acc[0] + self.acc[1]*self.acc[1] + self.acc[2]*self.acc[2])
 
-                   if self.count <= MAX_CALIBRATION_COUNT:
+                   if self.count <= COUNT_MAX:
                        self.calibrate_threshold()
                    else:
-                       self.short_distance += self.r * G * self.dt * self.dt * MAGIC_DISTANCE
+                       self.distance += self.r * G * self.dt * self.dt * DISTANCE_MULTIPLIER * 100
                else:
                     pass
 
             # heading
             elif self.raw_data_arr[0] == INPUT_HEADING:
                 if(self.parse_heading_input() == True):
-                    self.avg_heading = (self.headings[0] + self.headings[1]) / 2.0
-                    if self.avg_heading < (MAGIC_HEADING * self.headings[0]):
-                        self.avg_heading = self.headings[0]
-                    offset = self.get_coord()
-                    self.x.append(self.x[-1]+offset[0])
-                    self.y.append(self.y[-1]+offset[1])
-                    self.long_distance += self.short_distance
-                    self.short_distance = 0
-                    self.position[0] = self.x[-1]
-                    self.position[1] = self.y[-1]
+
+                    # bundle readings of headings
+                    if self.aggregate == AGGREGATE_LIMIT:
+                        self.isNewHeading = True and self.count > COUNT_MAX
+                        self.aggregate = 0
+                    else:
+                        self.aggregate += 1
+
+                    # 1 bundle awaiting after the calibration is done
+                    if self.isNewHeading == True:
+                        self.avg_heading = 0
+                        self.headings.sort()
+
+                        # aggregate the average headings
+                        for heading in self.headings:
+                            self.avg_heading += heading;
+                        self.avg_heading /= len(headings)
+                        self.avg_heading += headings[len(headings)/2]
+                        self.avg_heading /= 2
+
+                        # get the position based on previous position
+                        offset = self.get_coord()
+                        self.x.append[self.x[-1] + offset[0]]
+                        self.y.append[self.y[-1] + offset[1]]
+                        self.position[0] = self.x[-1]
+                        self.position[1] = self.y[-1]
+
+                        #update distance moved, reset for the next bundle
+                        self.total_distance += self.distance
+                        self.headings = []
+                        self.distance = 0
+
+                        self.line.set_xdata(self.x)
+                        self.line.set_ydata(self.y)
+                        self.ax.relim()
+                        # ax.autoscale_view(True,True,True)
+                        plt.draw()
+                        plt.pause(0.0000001)
+
+                    self.isNewHeading = False
 
                     # if (len(self.x) == 50):
                     #     plt.figure(1)
@@ -357,7 +409,7 @@ class Logic:
                     #calibrate sensors
                     #tie obstacle calibration to imu calibration
                     #if(self.count < MAX_CALIBRATION_COUNT):
-                    #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):            
+                    #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):
                         #self.obstacle.initial_calibration(sensors[2])
                         #self.obstacle_calibration_count += 1
                     #else:
@@ -402,9 +454,10 @@ class Logic:
     def parse_heading_input(self):
         if len(self.values) == 1:
             try:
-                self.headings[1] = self.headings[0]
-                self.headings[0] = float(self.values[0])
-                return True
+                raw_heading = float(self.values[0])
+                multiplier = round(raw_heading/HEADING_PER_UNIT, 0)
+                raw_heading = multiplier * HEADING_PER_UNIT
+                self.headings.append(raw_heading)
             except ValueError:
                 pass
         return False
@@ -450,15 +503,17 @@ class Logic:
         return False
 
     def calibrate_threshold(self):
-        if self.count < MAX_CALIBRATION_COUNT:
-            if self.count == 0:
-                print "Calibrating"
+        if (self.count < COUNT_MAX):
+            if (self.count == 0):
+                print "Calibrating..."
             self.count += 1
-            self.threshold = max(self.threshold, self.r)
-        elif self.count == MAX_CALIBRATION_COUNT:
+            self.limit = max(self.limit, self.r)
+        elif (self.count == COUNT_MAX):
             self.count += 1
-            self.threshold *= MAGIC_THRESHOLD
-            print "Ready! " + str(self.threshold)
+            print "Ready!: ",
+            print self.limit,
+            self.limit *= LIMIT_MULTIPLIER
+            print self.limit
         else:
             pass
 
@@ -469,18 +524,37 @@ class Logic:
             return -(360-self.northAt)
 
     def deg_from_Y(self):
-        offset = self.north_from_Y()
-        yDeg = self.avg_heading + offset
+        yOffset = self.north_from_Y()
+        yDeg = self.avg_heading + yOffset
+        # print heading, yOffset, yDeg
         if yDeg == 360:
             yDeg = 0;
+        if yDeg < 0:
+            yDeg += 360
         return yDeg
 
     def get_coord(self):
         angle = self.deg_from_Y()
         rad_angle = math.radians(angle)
-        y = self.short_distance * math.sin(rad_angle)
-        x = self.short_distance * math.cos(rad_angle)
+        x = self.distance * round(math.sin(rad_angle),0) * MAP_DISTANCE_MULTIPLIER
+        y = self.distance * round(math.cos(rad_angle),0) * MAP_DISTANCE_MULTIPLIER
         return (x,y)
+
+    def getMaps():
+        coord = []
+        url = "http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=" + BUILDING + "&Level=" + LEVEL
+
+        try:
+            REQUEST = requests.get(url)
+            data = json.loads(REQUEST.text)
+            info = data['info']
+            if (info != None):
+                local_map = data['map']
+                for node in local_map:
+                    self.map_x.append(int(node['x']))
+                    self.map_y.append(int(node['y']))
+        except:
+            pass
 
 #testing
 logic = Logic()
