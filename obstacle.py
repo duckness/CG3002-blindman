@@ -43,6 +43,10 @@ class ObstacleCues:
         self.audio = Audio()
         self.avg_height_below = 50
         self.calibrate = []
+        self.max_height_breathe = 0
+        self.min_height_breathe = 0
+        self.diff = 0
+
 
     def get_checksum(self, strn):
         checksum = 0
@@ -75,10 +79,22 @@ class ObstacleCues:
     def calibrate_height_below(self,array):
         return sum(array)/len(array)
 
+    def calibrate_max(self,array):
+        self.max_height_breathe = array[0]
+        self.min_height_breathe = array[0]
+        for values in array:
+            if values > self.max_height_breathe:
+                self.max_height_breathe = values
+            if values < self.min_height_breathe:
+                self.min_height_breathe = values
+
     def initial_calibration(self,cali_arr):
         self.calibrate.append(cali_arr[1])
         self.avg_height_below = self.calibrate_height_below(self.calibrate)
         print self.avg_height_below
+        self.calibrate_max(self.calibrate)
+        self.diff = self.max_height_breathe - self.min_height_breathe
+        print diff
 
 
     def detect_obstacles(self,obstacles):
@@ -101,7 +117,7 @@ class ObstacleCues:
                         return RIGHT_OBSTACLES
                     """
             else:
-                if abs(value[1] - self.avg_height_below) > 20 :  #i/r sensor
+                if abs(value[1] - self.avg_height_below) > self.diff :  #i/r sensor
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #self.audio.play_sound(self.audio.sounds[alert_direction])
@@ -148,6 +164,8 @@ class ObstacleCues:
         if distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir: # should base on navigation between left and right
             return True
         return False
+
+
 
     """
 
