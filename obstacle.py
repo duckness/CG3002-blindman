@@ -92,10 +92,10 @@ class ObstacleCues:
     def initial_calibration(self,cali_arr):
         self.calibrate.append(cali_arr[1])
         self.avg_height_below = self.calibrate_max(self.calibrate)
-        print self.avg_height_below
+        # print self.avg_height_below
         self.calibrate_max(self.calibrate)
         self.diff = self.max_height_breathe - self.min_height_breathe
-        print self.diff
+        # print self.diff
 
 
     def detect_obstacles(self,obstacles):

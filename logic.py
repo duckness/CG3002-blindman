@@ -1,5 +1,5 @@
 ﻿import math
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from datetime import datetime
 import requests
 
@@ -12,7 +12,8 @@ from wifi_finder import WifiFinder
 
 #constants
 #loop every this number of mricoseconds
-LOOP_PERIOD = 500000 #500000 = 0.5 seconds
+# LOOP_PERIOD = 500000 #500000 = 0.5 seconds
+LOOP_PERIOD = 250000
 ACTION_NAVIGATION = 0
 ACTION_WIFI = 1
 #Mega inputs
@@ -135,8 +136,8 @@ class Logic:
 
         #TODO: self.audio.play_sound("calibrating")
         #do calibration here?
-        while(self.count <= COUNT_MAX):
-            self.get_mega_input()
+        # while(self.count <= COUNT_MAX):
+        #     self.get_mega_input()
 
         #setup timer
         #get current time in millsec
@@ -144,12 +145,11 @@ class Logic:
         self.loop_timer = current_time.microsecond
 
         # realtime mapping
-        #self.getMaps()
-        #plt.ion()
-        #self.ax = plt.gca()
-        ## ax.set_autoscale_on(True)
-        #plt.plot(self.map_x, self.map_y, 'bo')
-        #self.line, = self.ax.plot(self.x, self.y, 'ro-')
+        self.getMaps()
+        plt.ion()
+        self.ax = plt.gca()
+        plt.plot(self.map_x, self.map_y, 'bo')
+        self.line, = self.ax.plot(self.x, self.y, 'ro-')
 
     def loop(self):
         while(1):
@@ -179,7 +179,7 @@ class Logic:
             #every half second, calculate stuff/check wifi
             if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
                 self.loop_timer = micros
-                if(self.loop_action == ACTION_NAVIGATION):
+                if(self.loop_action == ACTION_NAVIGATION and self.count > COUNT_MAX):
                     print "navi"
                     self.loop_action = ACTION_WIFI
                     #do navigation
@@ -336,7 +336,9 @@ class Logic:
                    if self.count <= COUNT_MAX:
                        self.calibrate_threshold()
                    else:
-                       self.distance += self.r * G * self.dt * self.dt * DISTANCE_MULTIPLIER * 100
+                       if self.r > self.limit:
+                           self.distance += self.r * G * self.dt * self.dt * DISTANCE_MULTIPLIER * 100
+                           print self.distance
                else:
                     pass
 
@@ -346,7 +348,8 @@ class Logic:
 
                     # bundle readings of headings
                     if self.aggregate == AGGREGATE_LIMIT:
-                        self.isNewHeading = True and self.count > COUNT_MAX
+                        if self.count > COUNT_MAX:
+                            self.isNewHeading = True
                         self.aggregate = 0
                     else:
                         self.aggregate += 1
@@ -378,7 +381,6 @@ class Logic:
                         self.line.set_xdata(self.x)
                         self.line.set_ydata(self.y)
                         self.ax.relim()
-                        # ax.autoscale_view(True,True,True)
                         plt.draw()
                         plt.pause(0.0000001)
 
@@ -544,9 +546,9 @@ class Logic:
         y = self.distance * round(math.cos(rad_angle),0) * MAP_DISTANCE_MULTIPLIER
         return (x,y)
 
-    def getMaps():
+    def getMaps(self):
         coord = []
-        url = "http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=" + BUILDING + "&Level=" + LEVEL
+        url = "http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=COM" + self.building + "&Level=" + self.level
 
         try:
             REQUEST = requests.get(url)
