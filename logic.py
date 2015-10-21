@@ -1,9 +1,9 @@
 ﻿import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from datetime import datetime
 import requests
 
-#from serial_processor import SerialProcessor
+from serial_processor import SerialProcessor
 from navigator import Navigator
 from obstacle import ObstacleCues
 from user_input import UserInput
@@ -83,7 +83,7 @@ class Logic:
         #self.done_calibration = False
         #self.obstacle_calibration_count = 0
         #init classes
-        #self.serial_processor = SerialProcessor()
+        self.serial_processor = SerialProcessor()
         self.navigator = Navigator()
         self.obstacle = ObstacleCues()
         self.user_input = UserInput()
@@ -130,12 +130,13 @@ class Logic:
         self.y.append(self.position[1])
 
         #set-up serial processing
-        #self.serial_processor.wait_for_ready()
+        self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
 
+        #TODO: self.audio.play_sound("calibrating")
         #do calibration here?
-        #while(self.count <= MAX_CALIBRATION_COUNT):
-        #    self.get_mega_input()
+        while(self.count <= COUNT_MAX):
+            self.get_mega_input()
 
         #setup timer
         #get current time in millsec
@@ -143,21 +144,21 @@ class Logic:
         self.loop_timer = current_time.microsecond
 
         # realtime mapping
-        self.getMaps()
-        plt.ion()
-        self.ax = plt.gca()
-        # ax.set_autoscale_on(True)
-        plt.plot(self.map_x, self.map_y, 'bo')
-        self.line, = self.ax.plot(self.x, self.y, 'ro-')
+        #self.getMaps()
+        #plt.ion()
+        #self.ax = plt.gca()
+        ## ax.set_autoscale_on(True)
+        #plt.plot(self.map_x, self.map_y, 'bo')
+        #self.line, = self.ax.plot(self.x, self.y, 'ro-')
 
     def loop(self):
         while(1):
             #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
-            #self.get_mega_input()
+            self.get_mega_input()
 
             if(self.sensor_flag == True):
-                print self.sensors
+                #print self.sensors
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
                     if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
@@ -176,7 +177,7 @@ class Logic:
             #print micros
 
             #every half second, calculate stuff/check wifi
-            if(abs(micros - self.loop_timer) >= LOOP_PERIOD):
+            if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
                 self.loop_timer = micros
                 if(self.loop_action == ACTION_NAVIGATION):
                     print "navi"
@@ -213,10 +214,12 @@ class Logic:
                                     print "going to"
                                     self.audio.play_number(node_direction[1])
                                     self.going_to_node_count = 0
+                            #delay sound for this section
                             if(abs(turn_direction[1]) > 30):
                                 self.audio.play_sound(self.index_to_turn[turn_direction[0]])
                             else:
-                                self.audio.play_sound('go')
+                                print "go"
+                                #self.audio.play_sound('go')
                     else:
                         if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
                             if(turn_direction[0] != 2):#follow map direction
@@ -399,6 +402,12 @@ class Logic:
             # sensor #2
             elif self.raw_data_arr[0] == INPUT_SENSOR_2:
                 if(self.parse_sensor_2_input() == True):
+                    #calibrate sensors
+                    #tie obstacle calibration to imu calibration
+                    if(self.count < COUNT_MAX):
+                    #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):
+                        self.obstacle.initial_calibration(self.sensors[1])
+                        #self.obstacle_calibration_count += 1
                     self.sensor_flag = True
                 else:
                     pass
@@ -406,12 +415,7 @@ class Logic:
             # sensor #3
             elif self.raw_data_arr[0] == INPUT_SENSOR_3:
                 if(self.parse_sensor_3_input() == True):
-                    #calibrate sensors
-                    #tie obstacle calibration to imu calibration
-                    #if(self.count < MAX_CALIBRATION_COUNT):
-                    #if(self.obstacle_calibration_count < OBSTACLE_CALIBRATION):
-                        #self.obstacle.initial_calibration(sensors[2])
-                        #self.obstacle_calibration_count += 1
+
                     #else:
                     self.sensor_flag = True
                 else:
@@ -475,8 +479,8 @@ class Logic:
     def parse_sensor_2_input(self):
         if len(self.values) == 2:
             try:
-                #self.sensors[1][0] = int(self.values[0])
-                #self.sensors[1][1] = int(self.values[1])
+                self.sensors[1][0] = int(self.values[0])
+                self.sensors[1][1] = int(self.values[1])
                 return True
             except ValueError:
                 pass
@@ -495,7 +499,7 @@ class Logic:
     def parse_sensor_4_input(self):
         if len(self.values) == 2:
             try:
-                #self.sensors[3][0] = int(self.values[0])
+                self.sensors[3][0] = int(self.values[0])
                 self.sensors[3][1] = int(self.values[1])
                 return True
             except ValueError:

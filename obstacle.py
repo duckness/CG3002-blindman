@@ -77,7 +77,7 @@ class ObstacleCues:
 
                 """
     def calibrate_height_below(self,array):
-        return sum(array)/len(array)
+        return self.max_height_breathe
 
     def calibrate_max(self,array):
         self.max_height_breathe = array[0]
@@ -87,14 +87,15 @@ class ObstacleCues:
                 self.max_height_breathe = values
             if values < self.min_height_breathe:
                 self.min_height_breathe = values
+        return self.max_height_breathe
 
     def initial_calibration(self,cali_arr):
         self.calibrate.append(cali_arr[1])
-        self.avg_height_below = self.calibrate_height_below(self.calibrate)
+        self.avg_height_below = self.calibrate_max(self.calibrate)
         print self.avg_height_below
         self.calibrate_max(self.calibrate)
         self.diff = self.max_height_breathe - self.min_height_breathe
-        print diff
+        print self.diff
 
 
     def detect_obstacles(self,obstacles):
@@ -102,11 +103,12 @@ class ObstacleCues:
             #print i, value
             #if value[0] != 0 or value[1]!= 0:
             if i != SENSOR_TOWARDS_GROUND:
-                if (value[0] <= MIN_DISTANCE_us and value[0] != 0) or (value[1] <= MIN_DISTANCE_ir and value[1] != 0):
+                if (value[0] <= MIN_DISTANCE_us and value[0] > 0) or (value[1] <= MIN_DISTANCE_ir and value[1] > 0):
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #self.audio.play_sound(self.audio.sounds[alert_direction])
                     self.audio.play_sound(alert_direction)
+                    print i, value[0], value[1]
                     print alert_direction
                     if i == 1 or i == 2:
                         return self.FRONT_OBSTACLES
@@ -121,13 +123,17 @@ class ObstacleCues:
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #self.audio.play_sound(self.audio.sounds[alert_direction])
+                    print 1, value[1]
                     self.audio.play_sound(alert_direction)
                     self.audio.play_sound('near_knee')
                     return self.OBSTACLE_LOWER
                 elif value[1] >= (self.avg_height_below + AVG_HEIGHT_STAIRS):
+                    print 1, value[1]
                     self.audio.play_sound('step_below')
                     return self.OBSTACLE_STEP_DOWN
-                if value[0] <= MIN_DISTANCE_us:
+                if (value[0] <= MIN_DISTANCE_us and value[0] > 0):
+                    print "us"
+                    print 1, value[0]
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #self.audio.play_sound(self.audio.sounds[alert_direction])
