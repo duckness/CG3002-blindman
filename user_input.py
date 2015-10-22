@@ -1,4 +1,4 @@
-﻿#from membraneMatrix import keypad
+﻿from matrix_key import MatrixKey
 from audio import Audio
 class lol:
     def __init__(self):
@@ -15,9 +15,9 @@ class lol:
 class UserInput:
 
     def __init__(self):
-        self.kp = lol()
+        #self.kp = lol()
         self.audio = Audio()
-        #self.kp = membraneMatrix.keypad(columnCount = 3)
+        self.kp = MatrixKey()
 
     def get_input(self):
         # Loop while waiting for a keypress
@@ -26,6 +26,7 @@ class UserInput:
             digit = None
             while digit == None:
                 digit = self.kp.getKey()
+                #digit = self.kp.read_input()
             if(digit=='*'):
                 self.audio.play_sound('beep_left')
                 inp =''
@@ -33,6 +34,7 @@ class UserInput:
                 if(digit=='#'):
                     self.audio.play_sound('beep_right')
                 else:
-                    self.audio.play_number(digit)
+                    self.audio.play_sound(digit)
+                    #self.audio.play_number(digit)
                 inp += digit
         return inp[:-1]
