@@ -17,7 +17,7 @@ LOOP_PERIOD = 500000 #500000 = 0.5 seconds
 ACTION_NAVIGATION = 0
 ACTION_WIFI = 1
 NAVI_MAX = 25
-WIFI_MAX = 250
+WIFI_MAX = 100
 
 #Mega inputs
 INPUT_IMU      = "00"
@@ -198,11 +198,11 @@ class Logic:
             #every half second, calculate stuff/check wifi
             # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
             #self.loop_timer = micros
-            if(self.count_navi == 5 and self.count_imu > COUNT_MAX):
+            if(self.count_wifi == 45 and self.count_imu > COUNT_MAX):
                 print self.index_to_turn[self.turn], self.number
                 self.audio.play_sound(self.index_to_turn[self.turn])
-                #self.audio.play_number(self.number)
-                                    
+                self.audio.play_number(self.number)
+
 
             if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX):
                 self.count_navi = 0
@@ -526,8 +526,10 @@ class Logic:
         if len(self.values) == 1:
             try:
                 tmp = float(self.values[0])
-                if (tmp-self.raw_heading > HEADING_PER_UNIT*3):
-                    return False
+                # if self.count_imu > COUNT_MAX:
+                #     print self.raw_heading, tmp
+                # if (tmp-self.raw_heading > HEADING_PER_UNIT*3):
+                #     return False
                 self.raw_heading = tmp
                 multiplier = round(self.raw_heading/HEADING_PER_UNIT, 0)
                 aggregate_heading = multiplier * HEADING_PER_UNIT
