@@ -482,7 +482,10 @@ class Logic:
     def parse_heading_input(self):
         if len(self.values) == 1:
             try:
-                self.raw_heading = float(self.values[0])
+                tmp = float(self.values[0])
+                if (tmp-self.raw_heading > HEADING_PER_UNIT*3):
+                    return False
+                self.raw_heading = tmp
                 multiplier = round(self.raw_heading/HEADING_PER_UNIT, 0)
                 aggregate_heading = multiplier * HEADING_PER_UNIT
                 self.headings.append(aggregate_heading)
