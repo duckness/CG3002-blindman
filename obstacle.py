@@ -9,6 +9,7 @@ MIN_DISTANCE_ir = 40
 SENSOR_TOWARDS_GROUND = 1
 AVG_HEIGHT_STAIRS = 15
 
+PERCENTAGE_OBSTACLE = 0.6
 PERCENTAGE_MIN = 0.9
 PERCENTAGE_MAX = 1.1
 BUFFER_MIN = 0.95
@@ -30,7 +31,7 @@ class ObstacleCues:
     FRONT_OBSTACLES = 1
     RIGHT_OBSTACLES = 2
     LEFT_OBSTACLES = 3
-    OBSTACLE_LOWER = 4
+    OBSTACLE_STEP_UP = 4
     OBSTACLE_STEP_DOWN= 5
     NO_OBSTACLES = 0
 
@@ -104,6 +105,10 @@ class ObstacleCues:
         #     self.max_height_breathe = cali_arr[1] * BUFFER_MAX
         # if cali_arr[1] < self.min_height_breathe:
         #     self.min_height_breathe = cali_arr[1] * BUFFER_MIN
+        if ir_max > 150:
+            ir_max = self.max_height_breathe
+        if ir_min < 25:
+            ir_min = self.min_height_breathe
         ir_max = cali_arr[1] * BUFFER_MAX
         ir_min = cali_arr[1] * BUFFER_MIN
         self.max_height_breathe = max(self.max_height_breathe, ir_max)
@@ -128,7 +133,7 @@ class ObstacleCues:
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     print 1, value[1], self.min_height_breathe
-                    return self.OBSTACLE_LOWER
+                    return self.OBSTACLE_STEP_UP
                 elif value[1] > (self.max_height_breathe * PERCENTAGE_MAX):
                     print 1, value[1], self.max_height_breathe
                     return self.OBSTACLE_STEP_DOWN

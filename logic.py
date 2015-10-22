@@ -178,10 +178,10 @@ class Logic:
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
                     if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
-                        self.audio.play_sound("near_knee")
-                        print "beware step down!"
-                    elif(self.obstruction_flag == self.obstacle.OBSTACLE_LOWER):
                         self.audio.play_sound("step_below")
+                        print "beware step down!"
+                    elif(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP):
+                        self.audio.play_sound("near_knee")
                         print "beware step up!"
                     else:
                         print "stop"
@@ -216,7 +216,7 @@ class Logic:
                 print "Walk distance: " + str(walk_direction)
                 print "Destination Check: " + str(destination)
                 print "-"
-                if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
+                if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP):
                     if(destination == 1):
                         print "you have reached dest"
                         self.audio.play_sound('stop')
