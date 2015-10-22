@@ -9,6 +9,11 @@ MIN_DISTANCE_ir = 40
 SENSOR_TOWARDS_GROUND = 1
 AVG_HEIGHT_STAIRS = 15
 
+PERCENTAGE_MIN = 0.85
+PERCENTAGE_MAX = 1.15
+BUFFER_MIN = 0.95
+BUFFER_MAX = 1.05
+
 #obstacles left:0, front(u/s): 1, front(i/r): 2,right: 3
 
 """
@@ -17,6 +22,8 @@ Front
 Right
 Left
 Back
+CALIBRATION - max and min
+sensor - 85% of min, 115% of max
 """
 
 class ObstacleCues:
@@ -76,72 +83,58 @@ class ObstacleCues:
                             self.audio.play_sound(self.audio.sounds[alert_direction])
 
                 """
-    def calibrate_height_below(self,array):
-        return sum(array)/len
+    #def calibrate_height_below(self,array):
+    #    return sum(array)/len
 
-    def calibrate_max(self, value):
+    #def calibrate_max(self, value):
         #self.max_height_breathe = array[0]
         #self.min_height_breathe = array[0]
         #for values in array:
-        if value > self.max_height_breathe:
-            self.max_height_breathe = value * 1.05
-        if value < self.min_height_breathe:
-            self.min_height_breathe = value * 0.95
-
-    def initial_calibration(self,cali_arr):
         #self.calibrate.append(cali_arr[1])
-        self.calibrate_max(cali_arr[1])
-        self.avg_height_below = (self.max_height_breathe + self.min_height_breathe)/2
-        # print self.avg_height_below
+        #self.avg_height_below = (self.max_height_breathe + self.min_height_breathe)/2
+        #print self.avg_height_below
         #self.calibrate_max(self.calibrate)
-        self.diff = self.max_height_breathe - self.min_height_breathe
-        # print self.diff
-
+        #self.diff = self.max_height_breathe - self.min_height_breathe
+        #print self.diff
+    
+    def initial_calibration(self,cali_arr):
+        #cali_arr is [us, ir] of the sensor to calibrate      
+        if cali_arr[1] > self.max_height_breathe:
+            self.max_height_breathe = cali_arr[1] * BUFFER_MAX
+        if cali_arr[1] < self.min_height_breathe:
+            self.min_height_breathe = cali_arr[1] * BUFFER_MIN
 
     def detect_obstacles(self,obstacles):
         for i,value in enumerate(obstacles):
             #print i, value
-            #if value[0] != 0 or value[1]!= 0:
             if i != SENSOR_TOWARDS_GROUND:
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0) or (value[1] <= MIN_DISTANCE_ir and value[1] > 0):
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    #self.audio.play_sound(self.audio.sounds[alert_direction])
                     self.audio.play_sound(alert_direction)
                     print i, value[0], value[1]
                     print alert_direction
                     if i == 1 or i == 2:
                         return self.FRONT_OBSTACLES
-                    """
-                    if i == 0:
-                        return LEFT_OBSTACLES
-                    if i == 3:
-                        return RIGHT_OBSTACLES
-                    """
             else:
-                if self.min_height_breathe - value[1] > self.diff :  #i/r sensor
+                if value[1] < (self.min_height_breathe * PERCENTAGE_MIN):  #i/r sensor
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    #self.audio.play_sound(self.audio.sounds[alert_direction])
-                    print 1, value[1]
-                    self.audio.play_sound(alert_direction)
-                    self.audio.play_sound('near_knee')
+                    print 1, value[1], self.min_height_breathe
                     return self.OBSTACLE_LOWER
-                elif value[1] >= (self.max_height_breathe + AVG_HEIGHT_STAIRS):
-                    print 1, value[1]
-                    self.audio.play_sound('step_below')
+                elif value[1] > (self.max_height_breathe * PERCENTAGE_MAX):
+                    print 1, value[1], self.max_height_breathe                   
                     return self.OBSTACLE_STEP_DOWN
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0):
                     print "us"
                     print 1, value[0]
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    #self.audio.play_sound(self.audio.sounds[alert_direction])
                     self.audio.play_sound(alert_direction)
                     return self.FRONT_OBSTACLES
         return self.NO_OBSTACLES
 
-    def alt_route(self,distance):   #
+    def alt_route(self,distance):   
         obstaclesfound=[1,0,0,0]; #front,left,right,no alt route
         if not self.detect_ostacle_right(distance[3]):
             obstaclesfound[2] = 1
@@ -162,16 +155,14 @@ class ObstacleCues:
 
 
     def detect_ostacle_right(self,distance):
-        if distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir: # should base on navigation between left and righT
+        if (distance[0] <= MIN_DISTANCE_us and distance[0] > 0) or (distance[1] <= MIN_DISTANCE_ir and distance[1] > 0): # should base on navigation between left and righT
             return True
         return False
 
     def detect_ostacle_left(self,distance):
-        if distance[0] <= MIN_DISTANCE_us or distance[1] <= MIN_DISTANCE_ir: # should base on navigation between left and right
+        if (distance[0] <= MIN_DISTANCE_us and distance[0] > 0) or (distance[1] <= MIN_DISTANCE_ir and distance[1] > 0): # should base on navigation between left and right
             return True
         return False
-
-
 
     """
 
