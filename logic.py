@@ -46,6 +46,8 @@ LEVEL = "2"
 
 TIME_WAIT_AT_NODE = 5
 TIME_WAIT_GOING_TO = 10
+TIME_WAIT_TURN = 4
+TIME_WAIT_GO = 9
 
 #user input
 COM1 = "1"
@@ -86,6 +88,9 @@ class Logic:
         self.loop_action = 0
         self.at_node_count = TIME_WAIT_AT_NODE
         self.going_to_node_count = TIME_WAIT_GOING_TO
+        self.left_timer = TIME_WAIT_TURN
+        self.right_timer = TIME_WAIT_TURN
+        self.go_timer = TIME_WAIT_GO
         #calibrate obstacle
         #self.done_calibration = False
         #self.obstacle_calibration_count = 0
@@ -163,10 +168,8 @@ class Logic:
     def loop(self):
         destination = 0
         while(destination == 0):
-            #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
             self.get_mega_input()
-            # print self.count_navi, self.count_wifi
 
             if(self.sensor_flag == True and self.count_imu > COUNT_MAX):
                 #print self.sensors
@@ -208,8 +211,6 @@ class Logic:
                         print "you have reached dest"
                         self.audio.play_sound('stop')
                     else:
-                        #every 10 seconds say where you are walking
-                        #every 2-3 seconds say you are at the node
                         if(node_direction[0] == 0):
                             self.at_node_count += 1
                             self.going_to_node_count = TIME_WAIT_GOING_TO
@@ -223,16 +224,36 @@ class Logic:
                             self.going_to_node_count += 1
                             self.at_node_count = TIME_WAIT_AT_NODE
                             if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
-                                #TODO:print going to
+                                #TODO:sound for going to
                                 print "going to"
                                 self.audio.play_number(node_direction[1])
                                 self.going_to_node_count = 0
-                        #delay sound for this section
-                        if(abs(turn_direction[1]) > 30):
-                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])
+                        #TODO:delay sound for this section
+                        if(abs(turn_direction[1]) > 25):
+                            if(turn_direction[0] == 0): #turn left
+                                self.left_timer += 1
+                                self.go_timer = TIME_WAIT_GO
+                                self.right_timer = TIME_WAIT_TURN
+                                if(self.left_timer >= TIME_WAIT_TURN):
+                                    print self.index_to_turn[0]
+                                    self.audio.play_sound(self.index_to_turn[0])
+                                    self.left_timer = 0
+                            else:
+                                self.right_timer += 1
+                                self.go_timer = TIME_WAIT_GO
+                                self.left_timer = TIME_WAIT_TURN
+                                if(self.right_timer >= TIME_WAIT_TURN):
+                                    print self.index_to_turn[1]
+                                    self.audio.play_sound(self.index_to_turn[1])
+                                    self.right_timer = 0
                         else:
-                            print "go"
-                            #self.audio.play_sound('go')
+                            self.go_timer += 1
+                            self.left_timer = TIME_WAIT_TURN
+                            self.right_timer = TIME_WAIT_TURN
+                            if(self.go_timer >= TIME_WAIT_GO):
+                                print "go"
+                                self.audio.play_sound('go')
+                                self.go_timer = 0
                 else:
                     print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
                     if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
