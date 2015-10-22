@@ -17,7 +17,7 @@ LOOP_PERIOD = 500000 #500000 = 0.5 seconds
 ACTION_NAVIGATION = 0
 ACTION_WIFI = 1
 NAVI_MAX = 25
-WIFI_MAX = 100
+WIFI_MAX = 250
 
 #Mega inputs
 INPUT_IMU      = "00"
@@ -46,8 +46,8 @@ LEVEL = "2"
 
 TIME_WAIT_AT_NODE = 5
 TIME_WAIT_GOING_TO = 10
-TIME_WAIT_TURN = 4
-TIME_WAIT_GO = 9
+TIME_WAIT_TURN = 5
+TIME_WAIT_GO = 10
 
 #user input
 COM1 = "1"
@@ -91,8 +91,7 @@ class Logic:
         self.left_timer = TIME_WAIT_TURN
         self.right_timer = TIME_WAIT_TURN
         self.go_timer = TIME_WAIT_GO
-        self.turn = 3
-        self.number = 0
+        self.turn = -1
         #calibrate obstacle
         #self.done_calibration = False
         #self.obstacle_calibration_count = 0
@@ -198,11 +197,11 @@ class Logic:
             #every half second, calculate stuff/check wifi
             # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
             #self.loop_timer = micros
-            if(self.count_wifi == 45 and self.count_imu > COUNT_MAX):
-                print self.index_to_turn[self.turn], self.number
-                self.audio.play_sound(self.index_to_turn[self.turn])
-                self.audio.play_number(self.number)
-
+            if(self.count_wifi == 100 and self.count_imu > COUNT_MAX):
+                if (self.turn > 0):
+                    print self.index_to_turn[self.turn], self.number
+                    self.audio.play_sound(self.index_to_turn[self.turn])
+                    self.audio.play_number(self.number)
 
             if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX):
                 self.count_navi = 0
@@ -240,17 +239,13 @@ class Logic:
                                 self.audio.play_number(node_direction[1])
                                 self.going_to_node_count = 0
                         #TODO:delay sound for this section
-                        if(abs(turn_direction[1]) > 25):
+                        if(abs(turn_direction[1]) > 45):
                             if(turn_direction[0] == 0): #turn left
                                 self.left_timer += 1
                                 self.go_timer = TIME_WAIT_GO
                                 self.right_timer = TIME_WAIT_TURN
                                 if(self.left_timer >= TIME_WAIT_TURN):
                                     self.turn = 0
-                                    if(turn_direction > 99):
-                                        self.number = 99
-                                    else:
-                                        self.number = int(turn_direction[1])
                                     self.left_timer = 0
                             else:#turn right
                                 self.right_timer += 1
@@ -258,10 +253,6 @@ class Logic:
                                 self.left_timer = TIME_WAIT_TURN
                                 if(self.right_timer >= TIME_WAIT_TURN):
                                     self.turn = 1
-                                    if(turn_direction > 99):
-                                        self.number = 99
-                                    else:
-                                        self.number = int(turn_direction[1])
                                     self.right_timer = 0
                         else:
                             self.go_timer += 1
@@ -270,11 +261,6 @@ class Logic:
                             if(self.go_timer >= TIME_WAIT_GO):
                                 self.turn = 2
                                 self.go_timer = 0
-                                distance = int(walk_direction/100)
-                                if(distance > 99):
-                                    self.number = 99
-                                else:
-                                    self.number = distance
                 else:
                     print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
                     if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
