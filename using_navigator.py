@@ -9,7 +9,7 @@ class UsingNavigator:
         #self.heading = ""
 
     def setup_and_run(self):
-        check_map, check_start_node, check_end_node = self.navigator.calculate_path("COM1", "2", "1", "15")
+        check_map, check_start_node, check_end_node = self.navigator.calculate_path("COM1", "2", "15", "1")
         if(check_map == 1): #if map is invalid
             print "Invalid map! No data in url"
         elif(check_map == 2): #if map is invalid
@@ -42,23 +42,25 @@ class UsingNavigator:
         #node direction, turn direction, walk direction, destination check will be returned by get_directions
 
 #testing with customized coordinates and headings below
-        #exact location testing with str
+        #to print string: print node_dor + ", " + turn_dir + ", " + walk_dir
+
+        #exact location testing with str (15 to 1)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(7065, 2000, 225)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(7065, 1787, 225)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(5603, 1787, -45)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(3776, 1787, -45)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(3776, 2436, -45)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(2883, 2436, -45)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(2152, 2436, -45)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         # node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(0, 2436, -45)
-        # print node_dir + ", " + turn_dir + ", " + walk_dir
+        # self.print_output(node_dir, turn_dir, walk_dir, dest_check)
 
         #vauge location testing with output numbers
         node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(7065, 2000, 225)
@@ -75,11 +77,11 @@ class UsingNavigator:
         self.print_output(node_dir, turn_dir, walk_dir, dest_check)
         node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(2152, 2436, -45)
         self.print_output(node_dir, turn_dir, walk_dir, dest_check)
-        node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(0, 2436, -45)
+        node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(0, 2436, 135)
         self.print_output(node_dir, turn_dir, walk_dir, dest_check)
-        node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(1000, 2436, 220)
+        node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(1000, 2436, 310)
         self.print_output(node_dir, turn_dir, walk_dir, dest_check)
-        node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(0, 2200, 220)
+        node_dir, turn_dir, walk_dir, dest_check = self.navigator.get_directions(330, 2600, 45) #330-340
         self.print_output(node_dir, turn_dir, walk_dir, dest_check)
 
 #testing for while loop below (for str)

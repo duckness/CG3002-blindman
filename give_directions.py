@@ -16,6 +16,7 @@ class GiveDirections:
         self.northAt = ""
         self.prevNode = ""
         self.nextNode = ""
+        self.lastNode = 0
 
     def fetch_map(self, building, level, start, end):
         self.building = building
@@ -107,6 +108,10 @@ class GiveDirections:
     def giving_exact_direction(self, x, y, heading, targetNode):
         destination = 0
         targetNodeDist = self.distance_from_node(x, y, targetNode)
+
+        if(targetNode == self.path[len(self.path)-1]):
+            self.lastNode = 1; #going to last node in the path
+
         #if the exact distance is reached
         if (targetNodeDist <= 0):
             for _i in range(0,len(self.path)):
@@ -146,15 +151,17 @@ class GiveDirections:
             node_direction = "At node " + str(self.nextNode)
             node_direction = (0, self.nextNode)
 
+            #if going to last node on the path
+            if(self.lastNode == 1):
+                node_direction = "Reached destination"
+                node_direction = (2, 0)
+                destination = 1
+
             #if distance from current to first node >= distance between both nodes
             if(dist_from_prev_node >= dist_between_nodes):
                 self.prevNode = self.nextNode
                 self.nextNode = self.get_next_node()
 
-                if(self.nextNode == -1):
-                    node_direction = "Reached destination"
-                    node_direction = (2, 0)
-                    destination = 1
         #if distance from current to first node is >10% but <90% of the distance between both nodes
         else:
             node_direction = "Going to node " + str(self.nextNode)
