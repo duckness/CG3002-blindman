@@ -118,7 +118,7 @@ class ObstacleCues:
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0) or (value[1] <= MIN_DISTANCE_ir and value[1] > 0):
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    self.audio.play_sound(alert_direction)
+                    self.audio.play_beep(alert_direction)
                     print i, value[0], value[1]
                     print alert_direction
                     if i == 1 or i == 2:
@@ -137,7 +137,7 @@ class ObstacleCues:
                     print 1, value[0]
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    self.audio.play_sound(alert_direction)
+                    self.audio.play_beep(alert_direction)
                     return self.FRONT_OBSTACLES
         return self.NO_OBSTACLES
 

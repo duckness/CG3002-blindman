@@ -1,10 +1,14 @@
 import pygame
 import time
+from collections import deque
+
 
 class Audio:
 
     def __init__(self):
         self.sounds = {}
+        self.channels = {}
+        self.number_queue = deque([])
         pygame.mixer.init()
         self.init_sounds()
 
@@ -32,24 +36,37 @@ class Audio:
                        '8': pygame.mixer.Sound("resources/8.wav"),
                        '9': pygame.mixer.Sound("resources/9.wav")
                        }
+        self.channels = {'node': pygame.mixer.Channel(4),
+                         'beep_left': pygame.mixer.Channel(5),
+                         'beep_mid': pygame.mixer.Channel(6),
+                         'beep_right': pygame.mixer.Channel(7)
+                         }
 
     # sound is a string, name of the sound file you want to play
     def play_sound(self, sound):
         self.sounds[sound].play(loops=0)
 
     # plays a number
-    # CAN ONLY PLAY ONE OR TWO DIGIT NUMBERS
     def play_number(self, node_number):
         number = str(node_number)
-        channel = self.sounds[number[0]].play(loops=0)
-        if len(number) > 1:
-            try:
-                channel.queue(self.sounds[number[1]])
-            except:
-                pass
+        self.number_queue.append('node')
+        for c in number:
+            self.number_queue.append(c)
+
+    def play_beep(self, direction):
+        self.channels[direction].queue(self.sounds[direction])
+
+    def sound_dequeue(self):
+        if self.channels['node'].get_queue() is None and len(self.number_queue) > 0:
+            self.channels['node'].queue(self.sounds[self.number_queue.popleft()])
 
 
-#  a = Audio()
-# a.play_sound('around')
-#  a.play_number(12)
-#  time.sleep(20)
+a = Audio()
+#a.play_sound('around')
+a.play_number(12)
+for i in range(0,10):
+    #a.play_beep('beep_mid')
+    a.sound_dequeue()
+    time.sleep(0.2)
+time.sleep(20)
+

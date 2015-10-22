@@ -171,6 +171,7 @@ class Logic:
         destination = 0
         while(destination == 0):
             #read from mega at every possible second
+            self.audio.sound_dequeue()
             self.get_mega_input()
 
             if(self.sensor_flag == True and self.count_imu > COUNT_MAX):
