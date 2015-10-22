@@ -16,8 +16,8 @@ from wifi_finder import WifiFinder
 LOOP_PERIOD = 500000 #500000 = 0.5 seconds
 ACTION_NAVIGATION = 0
 ACTION_WIFI = 1
-NAVI_MAX = 10
-WIFI_MAX = 100
+NAVI_MAX = 25
+WIFI_MAX = 250
 
 #Mega inputs
 INPUT_IMU      = "00"
@@ -166,7 +166,7 @@ class Logic:
             #TODO: perhaps input a different timing scheme for this
             #read from mega at every possible second
             self.get_mega_input()
-            print self.count_navi, self.count_wifi
+            # print self.count_navi, self.count_wifi
 
             if(self.sensor_flag == True and self.count_imu > COUNT_MAX):
                 #print self.sensors
@@ -190,7 +190,7 @@ class Logic:
             #every half second, calculate stuff/check wifi
             # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
             #self.loop_timer = micros
-            if(self.count_navi >= NAVI_MAX): #and self.count_imu > COUNT_MAX
+            if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX): #and self.count_imu > COUNT_MAX
                 self.count_navi = 0
                 print "navi"
                 #self.loop_action = ACTION_WIFI
@@ -252,7 +252,7 @@ class Logic:
                         print self.index_to_turn[turn]
                         self.audio.play_sound(self.index_to_turn[turn])
 
-            elif(self.count_wifi >= WIFI_MAX):
+            elif(self.count_wifi >= WIFI_MAX and self.count_imu > COUNT_MAX):
                 print "wifi"
                 self.count_wifi = 0
                 #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
@@ -268,15 +268,15 @@ class Logic:
                 #self.position[1] = int(raw_input("Enter position y "))
                 #self.raw_heading = float(raw_input("Enter heading "))
                 #print "wifi"
-                self.signal = self.wifi_finder.is_within_range()
-                #check with navigation if wifi is true
-                if (self.signal['is_near'] == True) :
-                    self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
-                    pass
+                # self.signal = self.wifi_finder.is_within_range()
+                # #check with navigation if wifi is true
+                # if (self.signal['is_near'] == True) :
+                #     self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                #     pass
                 #self.loop_action = ACTION_NAVIGATION
                 #do wifi
                     #check wifi/position
-                
+
 
             else:
                 self.count_navi += 1
@@ -366,6 +366,7 @@ class Logic:
             elif self.raw_data_arr[0] == INPUT_HEADING:
                 if(self.parse_heading_input() == True):
                     # bundle readings of headings
+
                     if self.aggregate == AGGREGATE_LIMIT and self.count_imu > COUNT_MAX:
                             self.isNewHeading = True
                             self.aggregate = 0
@@ -383,8 +384,8 @@ class Logic:
                         for heading in self.headings:
                             self.avg_heading += heading;
                         self.avg_heading /= len(self.headings)
-                        self.avg_heading += self.headings[len(self.headings)/2]
-                        self.avg_heading /= 2
+                        # self.avg_heading += self.headings[len(self.headings)/2]
+                        # self.avg_heading /= 2
 
                         # get the position based on previous position
                         offset = self.get_coord()
