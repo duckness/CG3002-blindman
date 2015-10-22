@@ -1,5 +1,5 @@
 ﻿import math
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 from datetime import datetime
 import requests
 import json
@@ -147,7 +147,7 @@ class Logic:
         self.y.append(self.position[1])
 
         ##set-up serial processing
-        self.serial_processor.wait_for_ready()
+        #self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
 
         #TODO: self.audio.play_sound("calibrating")
@@ -161,11 +161,11 @@ class Logic:
         #self.loop_timer = current_time.microsecond
 
         # realtime mapping
-        self.getMaps()
-        plt.ion()
-        self.ax = plt.gca()
-        plt.plot(self.map_x, self.map_y, 'bo')
-        self.line, = self.ax.plot(self.x, self.y, 'ro-')
+        #self.getMaps()
+        #plt.ion()
+        #self.ax = plt.gca()
+        #plt.plot(self.map_x, self.map_y, 'bo')
+        #self.line, = self.ax.plot(self.x, self.y, 'ro-')
 
     def loop(self):
         destination = 0
@@ -179,10 +179,10 @@ class Logic:
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
                     if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
-                        self.audio.play_sound("obstacles_near_knee")
+                        self.audio.play_sound("near_knee")
                         print "beware step down!"
                     elif(self.obstruction_flag == self.obstacle.OBSTACLE_LOWER):
-                        self.audio.play_sound("steps_below")
+                        self.audio.play_sound("step_below")
                         print "beware step up!"
                     else:
                         print "stop"
@@ -201,7 +201,7 @@ class Logic:
             if(self.count_navi == 5 and self.count_imu > COUNT_MAX):
                 print self.index_to_turn[self.turn], self.number
                 self.audio.play_sound(self.index_to_turn[self.turn])
-                self.audio.play_number(self.number)
+                #self.audio.play_number(self.number)
                                     
 
             if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX):
@@ -250,7 +250,7 @@ class Logic:
                                     if(turn_direction > 99):
                                         self.number = 99
                                     else:
-                                        self.number = turn_direction[1]
+                                        self.number = int(turn_direction[1])
                                     self.left_timer = 0
                             else:#turn right
                                 self.right_timer += 1
@@ -261,7 +261,7 @@ class Logic:
                                     if(turn_direction > 99):
                                         self.number = 99
                                     else:
-                                        self.number = turn_direction[1]
+                                        self.number = int(turn_direction[1])
                                     self.right_timer = 0
                         else:
                             self.go_timer += 1
@@ -270,7 +270,7 @@ class Logic:
                             if(self.go_timer >= TIME_WAIT_GO):
                                 self.turn = 2
                                 self.go_timer = 0
-                                distance = walk_direction/100
+                                distance = int(walk_direction/100)
                                 if(distance > 99):
                                     self.number = 99
                                 else:
@@ -327,7 +327,8 @@ class Logic:
     def get_user_input(self):
         #TODO: have some sound for user input
         print "Please input building, level etc"
-        #get building name from user input
+        self.audio.play_sound("trapped")
+		#get building name from user input
         next_input = ''
         while(next_input == ''):
             input = self.user_input.get_input()
@@ -442,11 +443,11 @@ class Logic:
                         self.distance = 0
                         # print self.total_distance
                         print "\t\t\t\t\tLOCATION", (self.x[-1], self.y[-1])
-                        self.line.set_xdata(self.x)
-                        self.line.set_ydata(self.y)
-                        self.ax.relim()
-                        plt.draw()
-                        plt.pause(0.0000001)
+                        #self.line.set_xdata(self.x)
+                        #self.line.set_ydata(self.y)
+                        #self.ax.relim()
+                        #plt.draw()
+                        #plt.pause(0.0000001)
 
                     self.isNewHeading = False
 

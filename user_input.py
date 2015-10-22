@@ -1,5 +1,7 @@
 ﻿from matrix_key import MatrixKey
 from audio import Audio
+
+
 class lol:
     def __init__(self):
         pass
@@ -25,8 +27,8 @@ class UserInput:
         while (len(inp)<1 or inp[-1]!='#'):
             digit = None
             while digit == None:
-                digit = self.kp.getKey()
-                #digit = self.kp.read_input()
+                # digit = self.kp.getKey()
+                digit = self.kp.read_input()
             if(digit=='*'):
                 self.audio.play_sound('beep_left')
                 inp =''
@@ -35,6 +37,5 @@ class UserInput:
                     self.audio.play_sound('beep_right')
                 else:
                     self.audio.play_sound(digit)
-                    #self.audio.play_number(digit)
                 inp += digit
         return inp[:-1]

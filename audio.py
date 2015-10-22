@@ -61,12 +61,12 @@ class Audio:
             self.channels['node'].queue(self.sounds[self.number_queue.popleft()])
 
 
-a = Audio()
+#a = Audio()
 #a.play_sound('around')
-a.play_number(12)
-for i in range(0,10):
+#a.play_number(12)
+#for i in range(0,10):
     #a.play_beep('beep_mid')
-    a.sound_dequeue()
-    time.sleep(0.2)
-time.sleep(20)
+    #a.sound_dequeue()
+    #time.sleep(0.2)
+#time.sleep(20)
 
