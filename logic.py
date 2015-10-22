@@ -91,6 +91,8 @@ class Logic:
         self.left_timer = TIME_WAIT_TURN
         self.right_timer = TIME_WAIT_TURN
         self.go_timer = TIME_WAIT_GO
+        self.turn = 3
+        self.number = 0
         #calibrate obstacle
         #self.done_calibration = False
         #self.obstacle_calibration_count = 0
@@ -176,8 +178,10 @@ class Logic:
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
                     if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
+                        self.audio.play_sound("obstacles_near_knee")
                         print "beware step down!"
                     elif(self.obstruction_flag == self.obstacle.OBSTACLE_LOWER):
+                        self.audio.play_sound("steps_below")
                         print "beware step up!"
                     else:
                         print "stop"
@@ -193,7 +197,13 @@ class Logic:
             #every half second, calculate stuff/check wifi
             # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
             #self.loop_timer = micros
-            if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX): #and self.count_imu > COUNT_MAX
+            if(self.count_navi == 5 and self.count_imu > COUNT_MAX):
+                print self.index_to_turn[self.turn], self.number
+                self.audio.play_sound(self.index_to_turn[self.turn])
+                self.audio.play_number(self.number)
+                                    
+
+            if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX):
                 self.count_navi = 0
                 print "navi"
                 #self.loop_action = ACTION_WIFI
@@ -235,25 +245,35 @@ class Logic:
                                 self.go_timer = TIME_WAIT_GO
                                 self.right_timer = TIME_WAIT_TURN
                                 if(self.left_timer >= TIME_WAIT_TURN):
-                                    print self.index_to_turn[0]
-                                    self.audio.play_sound(self.index_to_turn[0])
+                                    self.turn = 0
+                                    if(turn_direction > 99):
+                                        self.number = 99
+                                    else:
+                                        self.number = turn_direction[1]
                                     self.left_timer = 0
-                            else:
+                            else:#turn right
                                 self.right_timer += 1
                                 self.go_timer = TIME_WAIT_GO
                                 self.left_timer = TIME_WAIT_TURN
                                 if(self.right_timer >= TIME_WAIT_TURN):
-                                    print self.index_to_turn[1]
-                                    self.audio.play_sound(self.index_to_turn[1])
+                                    self.turn = 1
+                                    if(turn_direction > 99):
+                                        self.number = 99
+                                    else:
+                                        self.number = turn_direction[1]
                                     self.right_timer = 0
                         else:
                             self.go_timer += 1
                             self.left_timer = TIME_WAIT_TURN
                             self.right_timer = TIME_WAIT_TURN
                             if(self.go_timer >= TIME_WAIT_GO):
-                                print "go"
-                                self.audio.play_sound('go')
+                                self.turn = 2
                                 self.go_timer = 0
+                                distance = walk_direction/100
+                                if(distance > 99):
+                                    self.number = 99
+                                else:
+                                    self.number = distance
                 else:
                     print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
                     if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
