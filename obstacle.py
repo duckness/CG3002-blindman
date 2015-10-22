@@ -9,8 +9,8 @@ MIN_DISTANCE_ir = 40
 SENSOR_TOWARDS_GROUND = 1
 AVG_HEIGHT_STAIRS = 15
 
-PERCENTAGE_MIN = 0.85
-PERCENTAGE_MAX = 1.15
+PERCENTAGE_MIN = 0.9
+PERCENTAGE_MAX = 1.1
 BUFFER_MIN = 0.95
 BUFFER_MAX = 1.05
 
@@ -51,7 +51,8 @@ class ObstacleCues:
         self.avg_height_below = 50
         self.calibrate = []
         self.max_height_breathe = 0
-        self.min_height_breathe = 0
+        self.min_height_breathe = 999
+        self.raw_avg = 0
         self.diff = 0
 
 
@@ -96,13 +97,19 @@ class ObstacleCues:
         #self.calibrate_max(self.calibrate)
         #self.diff = self.max_height_breathe - self.min_height_breathe
         #print self.diff
-    
+
     def initial_calibration(self,cali_arr):
-        #cali_arr is [us, ir] of the sensor to calibrate      
-        if cali_arr[1] > self.max_height_breathe:
-            self.max_height_breathe = cali_arr[1] * BUFFER_MAX
-        if cali_arr[1] < self.min_height_breathe:
-            self.min_height_breathe = cali_arr[1] * BUFFER_MIN
+        #cali_arr is [us, ir] of the sensor to calibrate
+        # if cali_arr[1] > self.max_height_breathe:
+        #     self.max_height_breathe = cali_arr[1] * BUFFER_MAX
+        # if cali_arr[1] < self.min_height_breathe:
+        #     self.min_height_breathe = cali_arr[1] * BUFFER_MIN
+        ir_max = cali_arr[1] * BUFFER_MAX
+        ir_min = cali_arr[1] * BUFFER_MIN
+        self.max_height_breathe = max(self.max_height_breathe, ir_max)
+        self.min_height_breathe = min(self.min_height_breathe, ir_min)
+
+        print self.max_height_breathe, self.min_height_breathe
 
     def detect_obstacles(self,obstacles):
         for i,value in enumerate(obstacles):
@@ -123,7 +130,7 @@ class ObstacleCues:
                     print 1, value[1], self.min_height_breathe
                     return self.OBSTACLE_LOWER
                 elif value[1] > (self.max_height_breathe * PERCENTAGE_MAX):
-                    print 1, value[1], self.max_height_breathe                   
+                    print 1, value[1], self.max_height_breathe
                     return self.OBSTACLE_STEP_DOWN
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0):
                     print "us"
@@ -134,7 +141,7 @@ class ObstacleCues:
                     return self.FRONT_OBSTACLES
         return self.NO_OBSTACLES
 
-    def alt_route(self,distance):   
+    def alt_route(self,distance):
         obstaclesfound=[1,0,0,0]; #front,left,right,no alt route
         if not self.detect_ostacle_right(distance[3]):
             obstaclesfound[2] = 1
