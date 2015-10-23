@@ -31,12 +31,12 @@ G = 9.81
 HEADING_PER_UNIT = 22.5
 HEADING_DRIFT = 45
 DISTANCE_MULTIPLIER = 1.75
-MAP_DISTANCE_MULTIPLIER = 1.25
 MAP_DISTANCE_MULTIPLIER = 1.8
-COUNT_MAX = 200
+MAP_DISTANCE_MULTIPLIER = 1.3
+COUNT_MAX = 300
 LIMIT_MULTIPLIER = 1.000001
 # LIMIT_MULTIPLIER = 1.09
-LIMIT_MULTIPLIER = 1.01
+# LIMIT_MULTIPLIER = 1.01
 AGGREGATE_LIMIT = 0
 BUILDING = "COM1"
 LEVEL = "2"
@@ -120,6 +120,7 @@ class Logic:
         self.map_y = []
         self.ax = None
         self.line = None
+        self.node_direction_index = 0
 
     def main(self):
         self.setup()
@@ -211,8 +212,10 @@ class Logic:
                 if (self.raw_heading == 999):
                     continue
                 node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.raw_heading);
+                self.node_direction_index = node_direction[0]
                 print node_direction
                 print turn_direction
+                print self.raw_heading
                 print "Walk distance: " + str(walk_direction)
                 print "Destination Check: " + str(destination)
                 print "-"
@@ -236,29 +239,29 @@ class Logic:
                                 print "going to"
                                 self.audio.play_number(node_direction[1])
                                 self.going_to_node_count = 0
-                        
-                        if(abs(turn_direction[1]) >= 45):
+
+                        if(abs(turn_direction[1]) >= 46):
                             if(turn_direction[0] == 0): #turn left
-                                self.left_timer += 1
-                                self.go_timer = TIME_WAIT_GO
-                                self.right_timer = TIME_WAIT_TURN
-                                if(self.left_timer >= TIME_WAIT_TURN):
-                                    self.turn = 0
-                                    self.left_timer = 0
+                                # self.left_timer += 1
+                                # self.go_timer = TIME_WAIT_GO
+                                # self.right_timer = TIME_WAIT_TURN
+                                # if(self.left_timer >= TIME_WAIT_TURN):
+                                self.turn = 0
+                                self.left_timer = 0
                             else:#turn right
-                                self.right_timer += 1
-                                self.go_timer = TIME_WAIT_GO
-                                self.left_timer = TIME_WAIT_TURN
-                                if(self.right_timer >= TIME_WAIT_TURN):
-                                    self.turn = 1
-                                    self.right_timer = 0
+                                # self.right_timer += 1
+                                # self.go_timer = TIME_WAIT_GO
+                                # self.left_timer = TIME_WAIT_TURN
+                                # if(self.right_timer >= TIME_WAIT_TURN):
+                                self.turn = 1
+                                self.right_timer = 0
                         else:
-                            self.go_timer += 1
-                            self.left_timer = TIME_WAIT_TURN
-                            self.right_timer = TIME_WAIT_TURN
-                            if(self.go_timer >= TIME_WAIT_GO):
-                                self.turn = 2
-                                self.go_timer = 0
+                            # self.go_timer += 1
+                            # self.left_timer = TIME_WAIT_TURN
+                            # self.right_timer = TIME_WAIT_TURN
+                            # if(self.go_timer >= TIME_WAIT_GO):
+                            self.turn = 2
+                            self.go_timer = 0
                 else:
                     print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
                     if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
@@ -506,11 +509,40 @@ class Logic:
     def parse_heading_input(self):
         if len(self.values) == 1:
             try:
-                self.raw_heading = float(self.values[0])
-                multiplier = round(self.raw_heading/HEADING_PER_UNIT, 0)
-                aggregate_heading = multiplier * HEADING_PER_UNIT
-                self.raw_heading = aggregate_heading
-                self.headings.append(aggregate_heading)
+                # tmp = float(self.values[0])
+                # if (self.node_direction_index == 0 and self.count_imu > COUNT_MAX):
+                #     self.raw_heading = tmp
+                # elif (self.node_direction_index == 1 and self.count_imu > COUNT_MAX):
+                #     min_heading = self.raw_heading-HEADING_PER_UNIT
+                #     max_heading = self.raw_heading+HEADING_PER_UNIT
+                #     if min_heading <= 0:
+                #         min_heading += 360
+                #     if max_heading >= 360:
+                #         max_heading -= 360
+                #     if tmp >= min_heading and tmp <= max_heading:
+                #         self.raw_heading = tmp
+                #     else:
+                #         self.raw_heading = self.raw_heading
+                # else:
+                #     self.raw_heading = tmp
+                #
+                # multiplier = round(self.raw_heading/HEADING_PER_UNIT, 0)
+                # aggregate_heading = multiplier * HEADING_PER_UNIT
+                # self.raw_heading = aggregate_heading
+                # self.headings.append(aggregate_heading)
+
+                tmp = float(self.values[0])
+                multiplier = round(tmp/HEADING_PER_UNIT, 0)
+                tmp = multiplier * HEADING_PER_UNIT
+                if (self.node_direction_index == 0 and self.count_imu > COUNT_MAX):
+                    self.raw_heading = tmp
+                elif (self.node_direction_index == 1 and self.count_imu > COUNT_MAX):
+                    self.raw_heading = self.raw_heading
+                else:
+                    self.raw_heading = tmp
+
+                self.headings.append(self.raw_heading)
+
                 return True
             except ValueError:
                 pass
@@ -560,6 +592,8 @@ class Logic:
         if (self.count_imu < COUNT_MAX):
             if (self.count_imu == 0):
                 print "Calibrating..."
+            if self.r > 1.09:
+                return
             self.count_imu += 1
             self.limit = max(self.limit, self.r)
         elif (self.count_imu == COUNT_MAX):
