@@ -1,4 +1,4 @@
-import pygame
+﻿import pygame
 import time
 from collections import deque
 
@@ -23,7 +23,7 @@ class Audio:
                        'beep_right': pygame.mixer.Sound("resources/beep_right.wav"),
                        'trapped': pygame.mixer.Sound("resources/trapped.wav"),
                        'near_knee': pygame.mixer.Sound("resources/obstacles_near_knee.wav"),
-                       'step_below': pygame.mixer.Sound("steps_below.wav"),
+                       'step_below': pygame.mixer.Sound("resources/steps_below.wav"),
                        'node': pygame.mixer.Sound("resources/node.wav"),
                        '0': pygame.mixer.Sound("resources/0.wav"),
                        '1': pygame.mixer.Sound("resources/1.wav"),
@@ -64,6 +64,8 @@ class Audio:
 
 
 #a = Audio()
+#a.play_sound("step_below")
+#print "played"
 #a.play_sound('around')
 #a.play_number(12)
 #for i in range(0,10):
