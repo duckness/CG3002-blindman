@@ -233,11 +233,10 @@ class Logic:
                             self.going_to_node_count += 1
                             self.at_node_count = TIME_WAIT_AT_NODE
                             if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
-                                #TODO:sound for going to
                                 print "going to"
                                 self.audio.play_number(node_direction[1])
                                 self.going_to_node_count = 0
-                        #TODO:delay sound for this section
+                        
                         if(abs(turn_direction[1]) >= 45):
                             if(turn_direction[0] == 0): #turn left
                                 self.left_timer += 1
@@ -294,15 +293,11 @@ class Logic:
                 #self.position[0] = int(raw_input("Enter position x "))
                 #self.position[1] = int(raw_input("Enter position y "))
                 #self.raw_heading = float(raw_input("Enter heading "))
-                #print "wifi"
-                # self.signal = self.wifi_finder.is_within_range()
-                # #check with navigation if wifi is true
-                # if (self.signal['is_near'] == True) :
-                #     self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
-                #     pass
-                #self.loop_action = ACTION_NAVIGATION
-                #do wifi
-                    #check wifi/position
+                print "wifi"
+                self.signal = self.wifi_finder.is_within_range()
+                #check with navigation if wifi is true
+                if (self.signal['is_near'] == True) :
+                    print self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
 
 
             else:
