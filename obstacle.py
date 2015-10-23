@@ -4,8 +4,8 @@ import math
 
 
 # the minimum distance in cm needed to an object before the beep will start triggering
-MIN_DISTANCE_us = 30
-MIN_DISTANCE_ir = 40
+MIN_DISTANCE_us = 50
+MIN_DISTANCE_ir = 50
 SENSOR_TOWARDS_GROUND = 1
 AVG_HEIGHT_STAIRS = 15
 
