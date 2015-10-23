@@ -199,9 +199,9 @@ class Logic:
             #self.loop_timer = micros
             if(self.count_wifi == 100 and self.count_imu > COUNT_MAX):
                 if (self.turn > 0):
-                    print self.index_to_turn[self.turn], self.number
+                    # print self.index_to_turn[self.turn], self.number
                     self.audio.play_sound(self.index_to_turn[self.turn])
-                    self.audio.play_number(self.number)
+                    # self.audio.play_number(self.number)
 
             if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX):
                 self.count_navi = 0
@@ -238,7 +238,7 @@ class Logic:
                                 self.audio.play_number(node_direction[1])
                                 self.going_to_node_count = 0
                         #TODO:delay sound for this section
-                        if(abs(turn_direction[1]) > 45):
+                        if(abs(turn_direction[1]) >= 45):
                             if(turn_direction[0] == 0): #turn left
                                 self.left_timer += 1
                                 self.go_timer = TIME_WAIT_GO
@@ -510,14 +510,10 @@ class Logic:
     def parse_heading_input(self):
         if len(self.values) == 1:
             try:
-                tmp = float(self.values[0])
-                # if self.count_imu > COUNT_MAX:
-                #     print self.raw_heading, tmp
-                # if (tmp-self.raw_heading > HEADING_PER_UNIT*3):
-                #     return False
-                self.raw_heading = tmp
+                self.raw_heading = float(self.values[0])
                 multiplier = round(self.raw_heading/HEADING_PER_UNIT, 0)
                 aggregate_heading = multiplier * HEADING_PER_UNIT
+                self.raw_heading = aggregate_heading
                 self.headings.append(aggregate_heading)
                 return True
             except ValueError:

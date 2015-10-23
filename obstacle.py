@@ -105,12 +105,14 @@ class ObstacleCues:
         #     self.max_height_breathe = cali_arr[1] * BUFFER_MAX
         # if cali_arr[1] < self.min_height_breathe:
         #     self.min_height_breathe = cali_arr[1] * BUFFER_MIN
+
+        ir_max = cali_arr[1] * BUFFER_MAX
+        ir_min = cali_arr[1] * BUFFER_MIN
         if ir_max > 150:
             ir_max = self.max_height_breathe
         if ir_min < 25:
             ir_min = self.min_height_breathe
-        ir_max = cali_arr[1] * BUFFER_MAX
-        ir_min = cali_arr[1] * BUFFER_MIN
+
         self.max_height_breathe = max(self.max_height_breathe, ir_max)
         self.min_height_breathe = min(self.min_height_breathe, ir_min)
 
