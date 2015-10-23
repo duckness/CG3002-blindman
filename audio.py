@@ -46,10 +46,12 @@ class Audio:
     def play_sound(self, sound):
         self.sounds[sound].play(loops=0)
 
-    # plays a number
-    def play_number(self, node_number):
+    # plays a number, optionally with extra arguments before them
+    # args takes in strings that represent sound files in the sounds dictionary
+    def play_number(self, node_number, *args):
         number = str(node_number)
-        self.number_queue.append('node')
+        for a in args:
+            self.number_queue.append(a)
         for c in number:
             self.number_queue.append(c)
 

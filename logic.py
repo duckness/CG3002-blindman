@@ -227,8 +227,7 @@ class Logic:
                             if(self.at_node_count >= TIME_WAIT_AT_NODE):
                                 #at node, play node ##
                                 print "at node"
-                                self.audio.play_sound('node')
-                                self.audio.play_number(node_direction[1])
+                                self.audio.play_number(node_direction[1], 'node')
                                 self.at_node_count = 0
                         elif(node_direction[0] == 1):
                             self.going_to_node_count += 1
