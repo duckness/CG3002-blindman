@@ -32,7 +32,7 @@ HEADING_PER_UNIT = 22.5
 HEADING_DRIFT = 45
 DISTANCE_MULTIPLIER = 1.75
 MAP_DISTANCE_MULTIPLIER = 1.8
-MAP_DISTANCE_MULTIPLIER = 1.3
+MAP_DISTANCE_MULTIPLIER = 1.26
 COUNT_MAX = 300
 LIMIT_MULTIPLIER = 1.000001
 # LIMIT_MULTIPLIER = 1.09
@@ -121,6 +121,8 @@ class Logic:
         self.ax = None
         self.line = None
         self.node_direction_index = 0
+        self.node_direction_manual = 0
+        self.node_direction_flip = 0
 
     def main(self):
         self.setup()
@@ -179,7 +181,7 @@ class Logic:
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
                     if(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN):
-                        self.audio.play_sound("step_below")
+                        # self.audio.play_sound("step_below")
                         print "beware step down!"
                     elif(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP):
                         self.audio.play_sound("near_knee")
@@ -188,6 +190,11 @@ class Logic:
                         print "stop"
                         self.audio.play_sound('stop')
                         self.reroute = self.obstacle.alt_route(self.sensors)
+
+                    if self.node_direction_index == 1 and self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP:
+                        self.node_direction_flip = int(NAVI_MAX/2)
+                        self.node_direction_index = 0
+
                 self.sensor_flag = False
 
             #get current time in seconds
@@ -212,7 +219,7 @@ class Logic:
                 if (self.raw_heading == 999):
                     continue
                 node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.raw_heading);
-                self.node_direction_index = node_direction[0]
+                self.node_direction_index = node_direction[2]
                 print node_direction
                 print turn_direction
                 print self.raw_heading
@@ -534,6 +541,11 @@ class Logic:
                 tmp = float(self.values[0])
                 multiplier = round(tmp/HEADING_PER_UNIT, 0)
                 tmp = multiplier * HEADING_PER_UNIT
+
+                # target = self.navigator.heading_from_prev_node()
+                # multiplier = round(target/HEADING_PER_UNIT, 0)
+                # target = multiplier * HEADING_PER_UNIT
+
                 if (self.node_direction_index == 0 and self.count_imu > COUNT_MAX):
                     self.raw_heading = tmp
                 elif (self.node_direction_index == 1 and self.count_imu > COUNT_MAX):
@@ -542,6 +554,11 @@ class Logic:
                     self.raw_heading = tmp
 
                 self.headings.append(self.raw_heading)
+
+                if self.node_direction_flip > 0:
+                    self.node_direction_flip -= 1
+                    if self.node_direction_flip == 0:
+                        self.node_direction = 1
 
                 return True
             except ValueError:

@@ -121,17 +121,17 @@ class GiveDirections:
                 if (targetNode == i):
                     if (_i == len(self.path)-1): #if it is at the end of path array
                         node_direction = "Reached exact destination"
-                        node_direction = (2, 0)
+                        node_direction = (2, 0, 0)
                         destination = 1
-                    else:
-                        node_direction =  "At node " + str(targetNode) + " exactly"
-                        node_direction = (1, targetNode)
-                        targetNode = self.path[_i+1]
-                        targetNodeDist = self.distance_from_node(x,y,targetNode)
-
-                        self.prevNode = self.nextNode
-                        self.nextNode = self.get_next_node()
-                        break
+                    # else:
+                    #     node_direction =  "At node " + str(targetNode) + " exactly"
+                    #     node_direction = (1, targetNode)
+                    #     targetNode = self.path[_i+1]
+                    #     targetNodeDist = self.distance_from_node(x,y,targetNode)
+                    #
+                    #     self.prevNode = self.nextNode
+                    #     self.nextNode = self.get_next_node()
+                    #     break
         else:
             node_direction = "" #to allow the addition of rough/vauge directions
 
@@ -140,41 +140,41 @@ class GiveDirections:
         walk_direction = (round(targetNodeDist, 2))
         return (node_direction, turn_direction, walk_direction, destination)
 
-    def giving_vauge_direction(self, dist_from_prev_node, dist_between_nodes):
+    def giving_vauge_direction(self, dist_from_prev_node, dist_between_nodes, heading):
         destination = 0
-        node_direction = (3,0)
+        node_direction = (3,0,0)
         #if distance from current to first node < 10% (20%) of the distance between both nodes
-        if((dist_from_prev_node < (0.15*dist_between_nodes))):
+        if((dist_from_prev_node < (0.12*dist_between_nodes))):
         # if((dist_from_prev_node < 120)):
-            bigger = max(self.prevRadius, 0.15*dist_between_nodes, 120)
+            bigger = max(self.prevRadius, 0.12*dist_between_nodes, 88)
             if(bigger > dist_from_prev_node):
                 node_direction = "At node " + str(self.prevNode)
-                node_direction = (0, self.prevNode)
+                node_direction = (0, self.prevNode, self.check_heading(heading))
 
         #if distance from current to first node > 90% (80%) of the distance between both nodes
         # elif((dist_from_prev_node > (0.8*dist_between_nodes))):
-        elif((dist_from_prev_node > (0.85*dist_between_nodes))):
+        elif((dist_from_prev_node > (0.88*dist_between_nodes))):
             node_direction = "At node " + str(self.nextNode)
-            node_direction = (0, self.nextNode)
+            node_direction = (0, self.nextNode, 0)
 
             #if going to last node on the path
             if(self.lastNode == 1):
                 node_direction = "Reached destination"
-                node_direction = (2, 0)
+                node_direction = (2, 0, 0)
                 destination = 1
 
             #if distance from current to first node >= distance between both nodes
             # if(dist_from_prev_node >= dist_between_nodes):
             #     self.prevNode = self.nextNode
             #     self.nextNode = self.get_next_node()
-            self.prevRadius = 0.15*dist_between_nodes
+            self.prevRadius = 0.12*dist_between_nodes
             self.prevNode = self.nextNode
             self.nextNode = self.get_next_node()
 
         #if distance from current to first node is >10% but <90% of the distance between both nodes
         else:
             node_direction = "Going to node " + str(self.nextNode)
-            node_direction = (1, self.nextNode)
+            node_direction = (1, self.nextNode, self.check_heading(heading))
 
         return (node_direction, destination)
 
@@ -182,7 +182,7 @@ class GiveDirections:
         dist_from_prev_node = self.distance_from_node(x, y, self.prevNode)
         if (self.prevNode == self.nextNode):
             node_direction = "Reached destination"
-            node_direction = (2, 0)
+            node_direction = (2, 0, 0)
             turn_direction = (3, 0)
             walk_direction = 0
             destination = 1
@@ -195,7 +195,7 @@ class GiveDirections:
             node_direction, turn_direction, walk_direction, destination = self.giving_exact_direction(x, y, heading, self.nextNode)
             if (node_direction == ""):
                 #get vauge directions
-                node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes)
+                node_direction, destination = self.giving_vauge_direction(dist_from_prev_node, dist_between_nodes, heading)
 
         #testing code below
         #if(self.nextNode != -1):
@@ -222,3 +222,31 @@ class GiveDirections:
                 if (dist_calculated <= range):
                     return True
         return False
+
+    def check_heading(self, heading):
+
+        x1 = self.maplist[self.prevNode]['x']
+        y1 = self.maplist[self.prevNode]['y']
+        x2 = self.maplist[self.nextNode]['x']
+        y2 = self.maplist[self.nextNode]['y']
+        prev_arr = [x1, y1]
+        next_arr = [x2, y2]
+
+        map_angle = self.walking_direction(prev_arr, next_arr)
+        ang = map_angle - self.northAt
+        if(ang < 0):
+            ang += 360
+
+        multiplier = round(ang/22.5, 0)
+        ang = multiplier * 22.5
+
+        multiplier = round(heading/22.5, 0)
+        heading_ang = multiplier * 22.5
+
+        if (ang == heading_ang):
+            return 1
+        else:
+            return 0
+        # ang =  360 - self.northAt + map_angle
+        # if(ang >= self.northAt):
+        #     ang -= self.northAt

@@ -25,8 +25,9 @@ class Navigator:
     #returns directions to next node with current coordinates and heading
     def get_directions(self, x, y, heading):
         #directions is made up of (node_direction, turn_direction, walk_direction, destination) respectively
-        #node_direction = (direction, node num) (TUPLE)
-            #(0, num) = At node num, (1, num) = Going to node num, (2, 0) = Reached destination
+        #node_direction = (direction, node num, check_heading) (TUPLE)
+            #(0, num) = At node num, (1, num) = Going to node num, (2, 0) = Reached destination, (3, 0) = Rubbish for start
+            #(X, X, 0) = Don't lock, (X, X, 1) = Lock
         #turn_direction = (direction, degree) (TUPLE)
             #(0, degree) = Turn left, (1, degree) = Turn right, (2, degree) = Go straight, (3, 0) = Invalid (Start=End)
         #walk_direction = distance (FLOAT) (0 = Invalid (Start=End))
@@ -36,6 +37,9 @@ class Navigator:
 
     def check_wifi(self, x, y, macAddr, range):
         return self.giveDir.nearby_wifi(self, x, y, macAddr, range)
+
+    def heading_from_prev_node(self):
+        return self.giveDir.heading_from_prev_node()
 
 #testing codes below
     #def main(self):
