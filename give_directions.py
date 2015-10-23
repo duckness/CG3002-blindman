@@ -17,6 +17,7 @@ class GiveDirections:
         self.prevNode = ""
         self.nextNode = ""
         self.lastNode = 0
+        self.prevRadius = 200
 
     def fetch_map(self, building, level, start, end):
         self.building = building
@@ -40,7 +41,7 @@ class GiveDirections:
     def walking_direction(self, point1, point2):
         if point1[0] < point2[0]:
             if point1[1] < point2[1]:
-                return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point2[0])))
+                return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point1[1])))
             elif point1[1] > point2[1]:
                 return 180 - math.degrees(math.atan2 ((point2[0] - point1[0]), (point1[1] - point2[1])))
             else:
@@ -141,13 +142,17 @@ class GiveDirections:
 
     def giving_vauge_direction(self, dist_from_prev_node, dist_between_nodes):
         destination = 0
+        node_direction = (3,0)
         #if distance from current to first node < 10% (20%) of the distance between both nodes
-        if((dist_from_prev_node < (0.1*dist_between_nodes))):
-            node_direction = "At node " + str(self.prevNode)
-            node_direction = (0, self.prevNode)
+        if((dist_from_prev_node < (0.15*dist_between_nodes))):
+        # if((dist_from_prev_node < 120)):
+            if(self.prevRadius > dist_from_prev_node):
+                node_direction = "At node " + str(self.prevNode)
+                node_direction = (0, self.prevNode)
 
         #if distance from current to first node > 90% (80%) of the distance between both nodes
-        elif((dist_from_prev_node > (0.9*dist_between_nodes))):
+        # elif((dist_from_prev_node > (0.8*dist_between_nodes))):
+        elif((dist_from_prev_node > (0.85*dist_between_nodes))):
             node_direction = "At node " + str(self.nextNode)
             node_direction = (0, self.nextNode)
 
@@ -158,9 +163,12 @@ class GiveDirections:
                 destination = 1
 
             #if distance from current to first node >= distance between both nodes
-            if(dist_from_prev_node >= dist_between_nodes):
-                self.prevNode = self.nextNode
-                self.nextNode = self.get_next_node()
+            # if(dist_from_prev_node >= dist_between_nodes):
+            #     self.prevNode = self.nextNode
+            #     self.nextNode = self.get_next_node()
+            self.prevRadius = 0.2*dist_between_nodes
+            self.prevNode = self.nextNode
+            self.nextNode = self.get_next_node()
 
         #if distance from current to first node is >10% but <90% of the distance between both nodes
         else:
