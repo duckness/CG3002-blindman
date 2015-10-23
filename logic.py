@@ -198,7 +198,7 @@ class Logic:
             # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
             #self.loop_timer = micros
             if(self.count_wifi == 100 and self.count_imu > COUNT_MAX):
-                if (self.turn > 0):
+                if (self.turn >= 0):
                     # print self.index_to_turn[self.turn], self.number
                     self.audio.play_sound(self.index_to_turn[self.turn])
                     # self.audio.play_number(self.number)
@@ -295,9 +295,10 @@ class Logic:
                 #self.raw_heading = float(raw_input("Enter heading "))
                 print "wifi"
                 self.signal = self.wifi_finder.is_within_range()
+                print self.signal
                 #check with navigation if wifi is true
                 if (self.signal['is_near'] == True) :
-                    print self.navigator.check_wifi(position[0], position[1], i['MAC'], 1.0)
+                    print self.navigator.check_wifi(self.position[0], self.position[1], self.signal['nodeName'], 1.0)
 
 
             else:

@@ -206,7 +206,7 @@ class GiveDirections:
     #takes in x_coor y_coor macAddr and distance to the accesspoint, checks weather if within the specified distance
     def nearby_wifi(self, x, y, macAddr, range):
         for accesspoint in self.mapfetcher.wifi:
-            if (accesspoint['macAddr'] == macAddr):
+            if (accesspoint['nodeName'] == macAddr):
                 print accesspoint
                 dist_calculated = math.hypot(x - float(accesspoint['x']),y - float(accesspoint['y']))
                 print dist_calculated

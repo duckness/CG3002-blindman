@@ -6,7 +6,7 @@ import time
 MIN_DB_IS_A_METRE = -48
 
 # number of cycles to check that it is higher than minimum dB
-CYCLES = 3
+CYCLES = 1
 
 # Mapping of router name to correct MAC address as the ones given are wrong
 MAC_MAP = {'a8:9d:21:f3:86:40': 'arc-0214-a', # COM1-2 this and below
@@ -63,7 +63,7 @@ class WifiFinder:
     def get_signal(self):
         strn = self.ping_router().splitlines()
         signal = {'strength': -int(''.join(x for x in strn[1] if x.isdigit())),
-                  'MAC': strn[0].split()[2]
+                  'MAC': strn[0].split()[2].lower()
                   }
         return signal
 
@@ -74,8 +74,8 @@ class WifiFinder:
         return subprocess.check_output("wavemon -i wlan0 -d | grep '\(SNR:\|access point:\)'", shell=True)
 
 
-#w = WifiFinder()
-#while True:
-#    print w.is_within_range()
-#    time.sleep(1)
+w = WifiFinder()
+while True:
+    print w.is_within_range()
+    time.sleep(1)
 
