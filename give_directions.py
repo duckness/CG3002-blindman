@@ -146,7 +146,8 @@ class GiveDirections:
         #if distance from current to first node < 10% (20%) of the distance between both nodes
         if((dist_from_prev_node < (0.15*dist_between_nodes))):
         # if((dist_from_prev_node < 120)):
-            if(self.prevRadius > dist_from_prev_node):
+            bigger = max(self.prevRadius, 0.15*dist_between_nodes, 120)
+            if(bigger > dist_from_prev_node):
                 node_direction = "At node " + str(self.prevNode)
                 node_direction = (0, self.prevNode)
 
@@ -166,7 +167,7 @@ class GiveDirections:
             # if(dist_from_prev_node >= dist_between_nodes):
             #     self.prevNode = self.nextNode
             #     self.nextNode = self.get_next_node()
-            self.prevRadius = 0.2*dist_between_nodes
+            self.prevRadius = 0.15*dist_between_nodes
             self.prevNode = self.nextNode
             self.nextNode = self.get_next_node()
 
