@@ -250,3 +250,19 @@ class GiveDirections:
         # ang =  360 - self.northAt + map_angle
         # if(ang >= self.northAt):
         #     ang -= self.northAt
+
+    def heading_from_prev_node(self):
+
+        x1 = self.maplist[self.prevNode]['x']
+        y1 = self.maplist[self.prevNode]['y']
+        x2 = self.maplist[self.nextNode]['x']
+        y2 = self.maplist[self.nextNode]['y']
+        prev_arr = [x1, y1]
+        next_arr = [x2, y2]
+
+        map_angle = self.walking_direction(prev_arr, next_arr)
+        ang = map_angle - self.northAt
+        if(ang < 0):
+            ang += 360
+
+        return ang

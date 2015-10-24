@@ -306,12 +306,11 @@ class Logic:
                 #self.position[1] = int(raw_input("Enter position y "))
                 #self.raw_heading = float(raw_input("Enter heading "))
                 print "wifi"
-                self.signal = self.wifi_finder.is_within_range()
-                print self.signal
-                #check with navigation if wifi is true
-                if (self.signal['is_near'] == True) :
-                    print self.navigator.check_wifi(self.position[0], self.position[1], self.signal['nodeName'], 1.0)
-
+                # self.signal = self.wifi_finder.is_within_range()
+                # print self.signal
+                # #check with navigation if wifi is true
+                # if (self.signal['is_near'] == True) :
+                #     print self.navigator.check_wifi(self.position[0], self.position[1], self.signal['nodeName'], 1.0)
 
             else:
                 self.count_navi += 1
@@ -544,9 +543,9 @@ class Logic:
                 multiplier = round(tmp/HEADING_PER_UNIT, 0)
                 tmp = multiplier * HEADING_PER_UNIT
 
-                # target = self.navigator.heading_from_prev_node()
-                # multiplier = round(target/HEADING_PER_UNIT, 0)
-                # target = multiplier * HEADING_PER_UNIT
+                target = self.navigator.heading_from_prev_node()
+                multiplier = round(target/HEADING_PER_UNIT, 0)
+                target = multiplier * HEADING_PER_UNIT
 
                 if (self.node_direction_index == 0 and self.count_imu > COUNT_MAX):
                     self.raw_heading = tmp
@@ -555,7 +554,16 @@ class Logic:
                 else:
                     self.raw_heading = tmp
 
-                self.headings.append(self.raw_heading)
+                # self.headings.append(self.raw_heading)
+
+                print "000000000000000000000000000000000 ", tmp, target
+                if abs(tmp-target) > HEADING_PER_UNIT:
+                    if self.node_direction_index == 1:
+                        # self.distance *= 0.8
+                        self.distance *= 1
+                    else:
+                        self.distance *= 0.95
+                self.headings.append(target)
 
                 if self.node_direction_flip > 0:
                     self.node_direction_flip -= 1
