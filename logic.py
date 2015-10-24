@@ -186,10 +186,12 @@ class Logic:
                     elif(self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP):
                         self.audio.play_sound("near_knee")
                         print "beware step up!"
+                        self.distance = 0
                     else:
                         print "stop"
                         self.audio.play_sound('stop')
                         self.reroute = self.obstacle.alt_route(self.sensors)
+                        self.distance = 0
 
                     if self.node_direction_index == 1 and self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP:
                         self.node_direction_flip = int(NAVI_MAX/2)
@@ -226,67 +228,67 @@ class Logic:
                 print "Walk distance: " + str(walk_direction)
                 print "Destination Check: " + str(destination)
                 print "-"
-                if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP):
-                    if(destination == 1):
-                        print "you have reached dest"
-                        self.audio.play_sound('stop')
-                    else:
-                        if(node_direction[0] == 0):
-                            self.at_node_count += 1
-                            self.going_to_node_count = TIME_WAIT_GOING_TO
-                            if(self.at_node_count >= TIME_WAIT_AT_NODE):
-                                #at node, play node ##
-                                print "at node"
-                                self.audio.play_number(node_direction[1], 'node')
-                                self.at_node_count = 0
-                        elif(node_direction[0] == 1):
-                            self.going_to_node_count += 1
-                            self.at_node_count = TIME_WAIT_AT_NODE
-                            if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
-                                print "going to"
-                                self.audio.play_number(node_direction[1])
-                                self.going_to_node_count = 0
-
-                        if(abs(turn_direction[1]) >= 46):
-                            if(turn_direction[0] == 0): #turn left
-                                # self.left_timer += 1
-                                # self.go_timer = TIME_WAIT_GO
-                                # self.right_timer = TIME_WAIT_TURN
-                                # if(self.left_timer >= TIME_WAIT_TURN):
-                                self.turn = 0
-                                self.left_timer = 0
-                            else:#turn right
-                                # self.right_timer += 1
-                                # self.go_timer = TIME_WAIT_GO
-                                # self.left_timer = TIME_WAIT_TURN
-                                # if(self.right_timer >= TIME_WAIT_TURN):
-                                self.turn = 1
-                                self.right_timer = 0
-                        else:
-                            # self.go_timer += 1
-                            # self.left_timer = TIME_WAIT_TURN
-                            # self.right_timer = TIME_WAIT_TURN
-                            # if(self.go_timer >= TIME_WAIT_GO):
-                            self.turn = 2
-                            self.go_timer = 0
+                #if(self.obstruction_flag == self.obstacle.NO_OBSTACLES or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_DOWN or self.obstruction_flag == self.obstacle.OBSTACLE_STEP_UP):
+                if(destination == 1):
+                    print "you have reached dest"
+                    self.audio.play_sound('stop')
                 else:
-                    print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
-                    if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
-                        if(turn_direction[0] != 2):#follow map direction
-                            print self.index_to_turn[turn_direction[0]]
-                            self.audio.play_sound(self.index_to_turn[turn_direction[0]])
-                        else:#turn right by default
-                            self.audio.play_sound(self.index_to_turn[1])
-                    elif(self.reroute == self.obstacle.NO_ALT_ROUTE):
-                        print "around"
-                        self.audio.play_sound('around')
+                    if(node_direction[0] == 0):
+                        self.at_node_count += 1
+                        self.going_to_node_count = TIME_WAIT_GOING_TO
+                        if(self.at_node_count >= TIME_WAIT_AT_NODE):
+                            #at node, play node ##
+                            print "at node"
+                            self.audio.play_number(node_direction[1], 'node')
+                            self.at_node_count = 0
+                    elif(node_direction[0] == 1):
+                        self.going_to_node_count += 1
+                        self.at_node_count = TIME_WAIT_AT_NODE
+                        if(self.going_to_node_count >= TIME_WAIT_GOING_TO):
+                            print "going to"
+                            self.audio.play_number(node_direction[1])
+                            self.going_to_node_count = 0
+
+                    if(abs(turn_direction[1]) >= 46):
+                        if(turn_direction[0] == 0): #turn left
+                            # self.left_timer += 1
+                            # self.go_timer = TIME_WAIT_GO
+                            # self.right_timer = TIME_WAIT_TURN
+                            # if(self.left_timer >= TIME_WAIT_TURN):
+                            self.turn = 0
+                            self.left_timer = 0
+                        else:#turn right
+                            # self.right_timer += 1
+                            # self.go_timer = TIME_WAIT_GO
+                            # self.left_timer = TIME_WAIT_TURN
+                            # if(self.right_timer >= TIME_WAIT_TURN):
+                            self.turn = 1
+                            self.right_timer = 0
                     else:
-                        if(self.reroute == self.obstacle.LEFT_PATH_FREE):
-                            turn = 0
-                        else:
-                            turn = 1
-                        print self.index_to_turn[turn]
-                        self.audio.play_sound(self.index_to_turn[turn])
+                        # self.go_timer += 1
+                        # self.left_timer = TIME_WAIT_TURN
+                        # self.right_timer = TIME_WAIT_TURN
+                        # if(self.go_timer >= TIME_WAIT_GO):
+                        self.turn = 2
+                        self.go_timer = 0
+                # else:
+                #     print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
+                #     if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
+                #         if(turn_direction[0] != 2):#follow map direction
+                #             print self.index_to_turn[turn_direction[0]]
+                #             self.audio.play_sound(self.index_to_turn[turn_direction[0]])
+                #         else:#turn right by default
+                #             self.audio.play_sound(self.index_to_turn[1])
+                #     elif(self.reroute == self.obstacle.NO_ALT_ROUTE):
+                #         print "around"
+                #         self.audio.play_sound('around')
+                #     else:
+                #         if(self.reroute == self.obstacle.LEFT_PATH_FREE):
+                #             turn = 0
+                #         else:
+                #             turn = 1
+                #         print self.index_to_turn[turn]
+                #         self.audio.play_sound(self.index_to_turn[turn])
 
             elif(self.count_wifi >= WIFI_MAX and self.count_imu > COUNT_MAX):
                 print "wifi"
