@@ -174,7 +174,7 @@ class GiveDirections:
         #if distance from current to first node is >10% but <90% of the distance between both nodes
         else:
             node_direction = "Going to node " + str(self.nextNode)
-            node_direction = (1, self.nextNode, self.check_heading(heading))
+            node_direction = (1, self.nextNode, 0)
 
         return (node_direction, destination)
 
