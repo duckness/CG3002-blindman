@@ -7,7 +7,7 @@ from user_input import UserInput
 from audio import Audio
 
 # debugging imports
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
 import requests
 import json
 
