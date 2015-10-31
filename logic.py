@@ -152,22 +152,16 @@ class Logic:
         #self.serial_processor.wait_for_ready()
         print "Ready to recieve data from Mega"
 
-        #TODO: self.audio.play_sound("calibrating")
-        #do calibration here?
-        # while(self.count_imu <= COUNT_MAX):
-        #     self.get_mega_input()
-
-        #setup timer
-        #get current time in millsec
-        #current_time = datetime.now().time()
-        #self.loop_timer = current_time.microsecond
-
         # realtime mapping
         #self.getMaps()
         #plt.ion()
         #self.ax = plt.gca()
         #plt.plot(self.map_x, self.map_y, 'bo')
         #self.line, = self.ax.plot(self.x, self.y, 'ro-')
+        
+        #TODO: self.audio.play_sound("calibrating")
+        while(self.count_imu <= COUNT_MAX):
+            self.get_mega_input()
 
     def loop(self):
         destination = 0
@@ -176,7 +170,8 @@ class Logic:
             self.audio.sound_dequeue()
             self.get_mega_input()
 
-            if(self.sensor_flag == True and self.count_imu > COUNT_MAX):
+            #OBSTACLES
+            if(self.sensor_flag == True):# and self.count_imu > COUNT_MAX
                 #print self.sensors
                 self.obstruction_flag = self.obstacle.detect_obstacles(self.sensors)
                 if(self.obstruction_flag != self.obstacle.NO_OBSTACLES):
@@ -198,26 +193,17 @@ class Logic:
                         self.node_direction_index = 0
 
                 self.sensor_flag = False
-
-            #get current time in seconds
-            #current_time = datetime.now().time()
-            #micros = current_time.microsecond
-            #print micros
-
-            #every half second, calculate stuff/check wifi
-            # if(abs(micros - self.loop_timer) >= LOOP_PERIOD):#
-            #self.loop_timer = micros
-            if(self.count_wifi == 100 and self.count_imu > COUNT_MAX):
+            
+            #PLAY SOUND
+            if(self.count_wifi == 100):# and self.count_imu > COUNT_MAX
                 if (self.turn >= 0):
                     # print self.index_to_turn[self.turn], self.number
                     self.audio.play_sound(self.index_to_turn[self.turn])
                     # self.audio.play_number(self.number)
 
-            if(self.count_navi >= NAVI_MAX and self.count_imu > COUNT_MAX):
+            #NAVIGATION
+            if(self.count_navi >= NAVI_MAX):# and self.count_imu > COUNT_MAX
                 self.count_navi = 0
-                print "navi"
-                #self.loop_action = ACTION_WIFI
-                #do navigation
                 if (self.raw_heading == 999):
                     continue
                 node_direction, turn_direction, walk_direction, destination = self.navigator.get_directions(self.position[0], self.position[1], self.raw_heading);
@@ -256,21 +242,21 @@ class Logic:
                             # self.right_timer = TIME_WAIT_TURN
                             # if(self.left_timer >= TIME_WAIT_TURN):
                             self.turn = 0
-                            self.left_timer = 0
+                            #self.left_timer = 0
                         else:#turn right
                             # self.right_timer += 1
                             # self.go_timer = TIME_WAIT_GO
                             # self.left_timer = TIME_WAIT_TURN
                             # if(self.right_timer >= TIME_WAIT_TURN):
                             self.turn = 1
-                            self.right_timer = 0
+                            #self.right_timer = 0
                     else:
                         # self.go_timer += 1
                         # self.left_timer = TIME_WAIT_TURN
                         # self.right_timer = TIME_WAIT_TURN
                         # if(self.go_timer >= TIME_WAIT_GO):
                         self.turn = 2
-                        self.go_timer = 0
+                        #self.go_timer = 0
                 # else:
                 #     print "EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH EH MAYBE BLOCK LAH"
                 #     if(self.reroute == self.obstacle.BOTH_SIDE_FREE):
@@ -290,7 +276,7 @@ class Logic:
                 #         print self.index_to_turn[turn]
                 #         self.audio.play_sound(self.index_to_turn[turn])
 
-            elif(self.count_wifi >= WIFI_MAX and self.count_imu > COUNT_MAX):
+            elif(self.count_wifi >= WIFI_MAX):# and self.count_imu > COUNT_MAX
                 print "wifi"
                 self.count_wifi = 0
                 #self.sensors[0][0] =  int(raw_input("Enter sensor 1 "))
