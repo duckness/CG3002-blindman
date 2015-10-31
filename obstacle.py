@@ -98,14 +98,14 @@ class ObstacleCues:
         #self.calibrate_max(self.calibrate)
         #self.diff = self.max_height_breathe - self.min_height_breathe
         #print self.diff
-
-    def initial_calibration(self,cali_arr):
         #cali_arr is [us, ir] of the sensor to calibrate
         # if cali_arr[1] > self.max_height_breathe:
         #     self.max_height_breathe = cali_arr[1] * BUFFER_MAX
         # if cali_arr[1] < self.min_height_breathe:
         #     self.min_height_breathe = cali_arr[1] * BUFFER_MIN
 
+
+    def initial_calibration(self,cali_arr):
         ir_max = cali_arr[1] * BUFFER_MAX
         ir_min = cali_arr[1] * BUFFER_MIN
         if ir_max > 150:
@@ -125,26 +125,28 @@ class ObstacleCues:
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0) or (value[1] <= MIN_DISTANCE_ir and value[1] > 0):
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    self.audio.play_beep(alert_direction)
-                    print i, value[0], value[1]
+                    #print i, value[0], value[1]
                     print alert_direction
                     if i == 1 or i == 2:
                         return self.FRONT_OBSTACLES
+                    else:
+                        self.audio.play_beep(alert_direction)
+                    
             else:
                 if value[1] < (self.min_height_breathe * PERCENTAGE_MIN):  #i/r sensor
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    print 1, value[1], self.min_height_breathe
+                    #print 1, value[1], self.min_height_breathe
                     return self.OBSTACLE_STEP_UP
                 elif value[1] > (self.max_height_breathe * PERCENTAGE_MAX):
-                    print 1, value[1], self.max_height_breathe
+                    #print 1, value[1], self.max_height_breathe
                     return self.OBSTACLE_STEP_DOWN
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0):
-                    print "us"
-                    print 1, value[0]
+                    #print "us"
+                    #print 1, value[0]
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
-                    self.audio.play_beep(alert_direction)
+                    #self.audio.play_beep(alert_direction)
                     return self.FRONT_OBSTACLES
         return self.NO_OBSTACLES
 
