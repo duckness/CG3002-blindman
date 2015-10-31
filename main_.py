@@ -10,6 +10,8 @@ from audio import Audio
 import matplotlib.pyplot as plt
 import requests
 import json
+import sys
+from time import time
 
 # constants
 # hardware id
@@ -72,6 +74,7 @@ class Main:
         # navigation
         self.navigation = 0
         # debugging
+        self.log        = None
         self.map_x      = []
         self.map_y      = []
         self.axis       = None
@@ -95,6 +98,7 @@ class Main:
         print 'System Ready.'
 
         # debugging
+        self.log = open(sys.path[0] + "/Serial"+str(time())+".txt", 'w')
         self.get_map()
         plt.plot(self.map_x, self.map_y, 'bo')
         plt.ion()
@@ -158,6 +162,10 @@ class Main:
                 parse_status = process_heading(raw_values)
             else:
                 parse_status = process_sensor(data_id, raw_values)
+
+            # debugging
+            self.log.write(raw_data[0] + ', ' + raw_data[1] + ', ' + raw_data[2] + '\n')
+            self.log.flush
 
         return parse_status
 
@@ -289,7 +297,8 @@ class Main:
             self.audio.sound_dequeue()
 
             # read serial
-            self.get_mega_data()
+            if self.get_mega_data() == False:
+                continue
 
             # calibration
             if self.calibrate < MAX_CALIBRATION:
