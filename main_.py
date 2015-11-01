@@ -1,4 +1,4 @@
-# required imports
+﻿# required imports
 import math
 from serial_processor import SerialProcessor
 from navigator import Navigator
@@ -23,6 +23,9 @@ ID_SENSOR_4         = '40'
 MAX_CALIBRATE       = 300
 MAX_NAVIGATION      = 50
 MIN_TURN_ANGLE      = 40
+MAX_SOUND           = 120
+SOUND_AT_NODE       = 3
+SOUND_GOING_TO      = 10
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
@@ -71,6 +74,11 @@ class Main:
         self.heading_r  = 999
         # navigation
         self.navigation = 0
+        #sound delay
+        self.sound = 0
+        self.sound_turndir = 2
+        self.at_node_count = SOUND_AT_NODE
+        self.going_to_node_count = SOUND_GOING_TO
         # debugging
         self.map_x      = []
         self.map_y      = []
@@ -315,6 +323,18 @@ class Main:
                 print "stop"
                 self.audio.play_sound('stop')
 
+            #play sound
+            if self.sound >= MAX_SOUND:
+                self.sound = 0
+                if self.sound_turndir == 0:
+                    self.audio.play_sound('left')
+                elif self.sound_turndir == 1:
+                    self.audio.play_sound('right')
+                else:
+                    self.audio.play_sound('go')
+            else:
+                self.sound += 1
+
             # navigation
             if self.navigation >= MAX_NAVIGATION:
                 self.navigation = 0
@@ -327,23 +347,33 @@ class Main:
 
                 if destination == 1:
                     break
-                else
+                else:
                     # node feedback
                     if node_dir[0] == 0:
                         print 'Reached node'
-                        self.audio.play_number(node_dir[1], 'node')
+                        self.at_node_count += 1
+                        self.going_to_node_count = SOUND_GOING_TO
+                        if(self.at_node_count >= SOUND_AT_NODE):
+                            self.audio.play_number(node_dir[1], 'node')
+                            self.at_node_count = 0
                     elif node_dir[0] == 1:
                         print 'Going node'
-                        self.audio.play_number(node_dir[1])
-
+                        self.going_to_node_count += 1
+                        self.at_node_count = SOUND_AT_NODE
+                        if(self.going_to_node_count >= SOUND_GOING_TO):
+                            self.audio.play_number(node_dir[1])
+                            self.going_to_node_count = 0
                     # turn feedback
                     if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
                         if turn_dir[0] == 0:
                             print 'Turn Left'
-                        else
+                            self.sound_turndir = 0
+                        else:
                             print 'Turn Right'
+                            self.sound_turndir = 1
                     else:
                         print 'Go'
+                        self.sound_turndir = 2
             else:
                 self.navigation += 1
 
