@@ -46,7 +46,7 @@ class Main:
         self.processor  = SerialProcessor()
         self.navigator  = Navigator()
         self.obstacle   = ObstacleCues()
-        self.user_input = User_Input()
+        self.user_input = UserInput()
         self.audio      = Audio()
         # map
         self.north_at   = 0
@@ -94,7 +94,7 @@ class Main:
         check_map, check_start, check_end = -1, -1, -1
         while (check_map!=0 or check_start!=0 or check_end!=0):
             self.get_map_input()
-            check_map, check_start, check_end = self.naviagtor.calculate_path(self.building, self.level, self.start, self.end)
+            check_map, check_start, check_end = self.navigator.calculate_path(self.building, self.level, self.start, self.end)
 
         # setup map
         self.north_at = self.navigator.get_northAt()
@@ -158,20 +158,21 @@ class Main:
         # get serial information in array format
         raw_data = self.processor.read_from_mega()
 
+        parse_status = False
         if self.processor.verify_data(raw_data) == True:
             data_id = raw_data[0]
             raw_values = raw_data[1].split('/')
 
             # data processing
-            parse_status = False
             if data_id == ID_IMU:
-                parse_status = process_imu(raw_values)
+                parse_status = self.process_imu(raw_values)
             elif data_id == ID_HEADING:
-                parse_status = process_heading(raw_values)
+                parse_status = self.process_heading(raw_values)
             else:
-                parse_status = process_sensor(data_id, raw_values)
+                parse_status = self.process_sensor(data_id, raw_values)
 
             # debugging
+            print raw_data
             self.log.write(raw_data[0] + ', ' + raw_data[1] + ', ' + raw_data[2] + '\n')
             self.log.flush
 
@@ -205,9 +206,9 @@ class Main:
         self.r = math.sqrt(self.acc[0]*self.acc[0] + self.acc[1]*self.acc[1] + self.acc[2]*self.acc[2])
 
         # calibration
-        if self.calibrate < MAX_CALIBRATION:
+        if self.calibrate < MAX_CALIBRATE:
             self.limit = max(self.limit, self.r)
-        elif self.calibrate == MAX_CALIBRATION:
+        elif self.calibrate == MAX_CALIBRATE:
             self.limit *= MULTIPLIER_LIMIT;
         else:
             if self.r > self.limit:
@@ -227,7 +228,7 @@ class Main:
         except ValueError:
             return False
 
-        if self.calibrate <= MAX_CALIBRATION:
+        if self.calibrate <= MAX_CALIBRATE:
             return True
 
         # calculations
@@ -309,11 +310,11 @@ class Main:
                 continue
 
             # calibration
-            if self.calibrate < MAX_CALIBRATION:
+            if self.calibrate < MAX_CALIBRATE:
                 if self.calibrate == 0:
                     print 'Start Calibration'
 
-                if self.calibrate == MAX_CALIBRATION:
+                if self.calibrate == MAX_CALIBRATE:
                     print 'End Calibration'
                     print 'Limit: ', self.limit
 
@@ -386,7 +387,7 @@ class Main:
     # debugging functions
     def get_map(self):
         coord = []
-        url = 'http://ShowMyWay.comp.nus.edu.sg/getMapInfo.php?' + 'Building=' + self.building + '&Level=' + self.level
+        url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?' + 'Building=' + self.building + '&Level=' + self.level
 
         try:
             info = json.loads(requests.get(url).text)['info']
@@ -396,5 +397,8 @@ class Main:
                     self.map_x.append(int(node['x']))
                     self.map_y.append(int(node['y']))
         except:
+            print url
             print 'Failed to fetch map.'
             pass
+#run this
+Main().main()
