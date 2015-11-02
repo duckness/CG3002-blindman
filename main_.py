@@ -332,17 +332,17 @@ class Main:
                 print "stop"
                 self.audio.play_sound('stop')
 
-            #play sound
-            if self.sound >= MAX_SOUND:
-                self.sound = 0
-                if self.sound_turndir == 0:
-                    self.audio.play_sound('left')
-                elif self.sound_turndir == 1:
-                    self.audio.play_sound('right')
-                else:
-                    self.audio.play_sound('go')
-            else:
-                self.sound += 1
+            ##play sound
+            #if self.sound >= MAX_SOUND:
+            #    self.sound = 0
+            #    if self.sound_turndir == 0:
+            #        self.audio.play_sound('left')
+            #    elif self.sound_turndir == 1:
+            #        self.audio.play_sound('right')
+            #    else:
+            #        self.audio.play_sound('go')
+            #else:
+            #    self.sound += 1
 
             # navigation
             if self.navigation >= MAX_NAVIGATION:
@@ -360,19 +360,11 @@ class Main:
                     # node feedback
                     if node_dir[0] == 0:
                         print 'Reached node'
-                        self.at_node_count += 1
-                        self.going_to_node_count = SOUND_GOING_TO
-                        if(self.at_node_count >= SOUND_AT_NODE):
-                            self.audio.play_number(node_dir[1], 'node')
-                            self.at_node_count = 0
+                        self.audio.play_number(node_dir[1], 'node')                            
                     elif node_dir[0] == 1:
                         print 'Going node'
-                        self.going_to_node_count += 1
-                        self.at_node_count = SOUND_AT_NODE
-                        if(self.going_to_node_count >= SOUND_GOING_TO):
-                            self.audio.play_number(node_dir[1])
-                            self.going_to_node_count = 0
-                    # turn feedback
+                        self.audio.play_number(node_dir[1])
+                        # turn feedback
                     if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
                         if turn_dir[0] == 0:
                             print 'Turn Left'
