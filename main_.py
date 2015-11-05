@@ -22,6 +22,7 @@ ID_SENSOR_2         = '20'
 ID_SENSOR_3         = '30'
 ID_SENSOR_4         = '40'
 # limits
+MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
 MAX_NAVIGATION      = 50
 MIN_TURN_ANGLE      = 40
@@ -68,7 +69,7 @@ class Main:
         self.temp       = 0
         self.sensors    = [[0,0],[0,0],[0,0],[0,0]]
         # calibration
-        self.calibrate  = 0
+        self.calibrate  = MIN_CALIBRATE
         self.limit      = 0
         # calculations
         self.r          = 0
@@ -206,7 +207,7 @@ class Main:
         self.r = math.sqrt(self.acc[0]*self.acc[0] + self.acc[1]*self.acc[1] + self.acc[2]*self.acc[2])
 
         # calibration
-        if self.calibrate < MAX_CALIBRATE:
+        if self.calibrate < MAX_CALIBRATE and self.calibrate >= 0:
             self.limit = max(self.limit, self.r)
         elif self.calibrate == MAX_CALIBRATE:
             self.limit *= MULTIPLIER_LIMIT;
@@ -266,7 +267,7 @@ class Main:
             self.sensors[index][0] = int(raw_values[0])
             self.sensors[index][1] = int(raw_values[1])
 
-            if (index == 1 and self.calibrate < MAX_CALIBRATION):
+            if (index == 1 and self.calibrate < MAX_CALIBRATION and self.calibrate >= 0):
                 self.obstacle.initial_calibration(self.sensors[index])
 
         except ValueError:
