@@ -172,7 +172,7 @@ class Main:
                 parse_status = self.process_sensor(data_id, raw_values)
 
             # debugging
-            print raw_data
+            # print raw_data
             self.log.write(raw_data[0] + ', ' + raw_data[1] + ', ' + raw_data[2] + '\n')
             self.log.flush
 
@@ -361,7 +361,7 @@ class Main:
                     # node feedback
                     if node_dir[0] == 0:
                         print 'Reached node'
-                        self.audio.play_number(node_dir[1], 'node')                            
+                        self.audio.play_number(node_dir[1], 'node')
                     elif node_dir[0] == 1:
                         print 'Going node'
                         self.audio.play_number(node_dir[1])
@@ -390,7 +390,8 @@ class Main:
         url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?' + 'Building=' + self.building + '&Level=' + self.level
 
         try:
-            info = json.loads(requests.get(url).text)['info']
+            data = json.loads(requests.get(url).text)
+            info = data['info']
             if (info != None):
                 local_map = data['map']
                 for node in local_map:
