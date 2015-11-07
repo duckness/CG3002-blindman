@@ -33,7 +33,7 @@ SOUND_GOING_TO      = 10
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
 MULTIPLIER_DISTANCE = 2.5
-MULTIPLIER_MAP      = 1.1
+MULTIPLIER_MAP      = 1.12
 MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
@@ -119,7 +119,7 @@ class Main:
                     self.temp_end = COM2_2_to_COM2_3[1]
                     self.temp_start = COM2_2_to_COM2_3[0]
                     self.temp_level = '2'
-        #COM1 to COM2 / COM2 to COM1 
+        #COM1 to COM2 / COM2 to COM1
         else:
             #COM1-2 to COM2-2 / COM1-2 to COM2-3
             if self.building_start == "COM1":
@@ -131,27 +131,27 @@ class Main:
             #COM2-2 to COM1-2 / COM2-3 to COM1-2
             else:
                 #COM2-2 to COM1-2
-                if self.level_dest == self.level_start: 
+                if self.level_dest == self.level_start:
                     self.temp_end = COM1_to_COM2[1]
                     self.temp_start = COM1_to_COM2[0]
                     self.temp_building = "COM1"
                     self.temp_level = '2'
                 #COM2-3 to COM1-2
-                else: 
+                else:
                     #route to COM2-2 first
                     self.temp_end = COM2_2_to_COM2_3[1]
                     self.temp_start = COM2_2_to_COM2_3[0]
                     self.temp_building = "COM2"
-                    self.temp_level = '2'                     
+                    self.temp_level = '2'
 
     # setup
     def setup(self):
         # input map info / all must be 0
         check_map, check_start, check_end = -1, -1, -1
         while (check_map!=0 or check_start!=0 or check_end!=0):
-            self.get_map_input()                    
+            self.get_map_input()
             self.switching_map()
-            check_map, check_start, check_end = self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end) 
+            check_map, check_start, check_end = self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
             print check_map, check_start, check_end
         print "temp_end: " + str(self.temp_end)
         # setup map
@@ -185,7 +185,15 @@ class Main:
         #   but keep the variable index.
         input_id = 0
         keypress = ''
+
         while input_id < 6:
+            # debugging
+            self.building = 'COM1'
+            self.level = '2'
+            self.start = '1'
+            self.end = '26'
+            break
+
             keypress = self.user_input.get_input()
             if keypress == '':
                 continue
@@ -280,8 +288,6 @@ class Main:
                 self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP
         else:
             pass
-
-        print abs(self.gyro[0]), '\t', abs(self.gyro[1]), '\t', abs(self.gyro[2])
 
         return True
 
@@ -428,6 +434,7 @@ class Main:
             if destination == 1:
                 break
 
+            # print self.node_dir
             if self.node_dir[0] == 0 and self.navigation%(MAX_NAVIGATION/2) == 0:
                 # print 'Reached node'
                 # print 'Heading: ', self.heading_r
@@ -506,7 +513,7 @@ class Main:
                     self.sound_turndir = 2
             else:
                 self.navigation += 1
-            
+
             # TODO: WIFI
             #Testing
             #if self.navigation >= MAX_NAVIGATION:
