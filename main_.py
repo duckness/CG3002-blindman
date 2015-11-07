@@ -310,7 +310,8 @@ class Main:
         # calculations
         sections = round(self.heading/MULTIPLIER_HEADING, 0)
         self.heading_r = sections * MULTIPLIER_HEADING
-
+        self.heading_r = self.heading
+        
         # position
         pos_offset = self.process_position()
         self.x.append(self.x[-1] + pos_offset[0])
@@ -360,8 +361,7 @@ class Main:
             offset_y_angle = - (360 - self.north_at)
 
         # offset from y-axis
-        # y_degree = self.heading_r + offset_y_angle
-        y_degree = self.heading + offset_y_angle
+        y_degree = self.heading_r + offset_y_angle
         if y_degree == 360:
             y_degree = 0
         elif y_degree < 0:
