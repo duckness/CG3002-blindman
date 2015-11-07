@@ -106,16 +106,23 @@ class ObstacleCues:
 
 
     def initial_calibration(self,cali_arr):
-        ir_max = cali_arr[1] * BUFFER_MAX
-        ir_min = cali_arr[1] * BUFFER_MIN
-        if ir_max > 150:
-            ir_max = self.max_height_breathe
-        if ir_min < 25:
-            ir_min = self.min_height_breathe
-
-        self.max_height_breathe = max(self.max_height_breathe, ir_max)
-        self.min_height_breathe = min(self.min_height_breathe, ir_min)
-
+        if cali_arr[1] >= 30 and cali_arr[1] <= 150:
+            self.calibrate.append(cali_arr[1])
+        if len(self.calibrate) == 0:
+            return
+        self.calibrate.sort()
+        self.max_height_breathe = self.calibrate[-1]
+        self.min_height_breathe = self.calibrate[0]
+        # ir_max = cali_arr[1] * BUFFER_MAX
+        # ir_min = cali_arr[1] * BUFFER_MIN
+        # if ir_max > 150:
+        #     ir_max = self.max_height_breathe
+        # if ir_min < 25:
+        #     ir_min = self.min_height_breathe
+        #
+        # self.max_height_breathe = max(self.max_height_breathe, ir_max)
+        # self.min_height_breathe = min(self.min_height_breathe, ir_min)
+        #
         print self.max_height_breathe, self.min_height_breathe
 
     def detect_obstacles(self,obstacles):
@@ -126,12 +133,12 @@ class ObstacleCues:
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #print i, value[0], value[1]
-                    print alert_direction
+                    # print alert_direction
                     if i == 1 or i == 2:
                         return self.FRONT_OBSTACLES
                     else:
                         self.audio.play_beep(alert_direction)
-                    
+
             else:
                 if value[1] < (self.min_height_breathe * PERCENTAGE_MIN):  #i/r sensor
                     alert_direction = self.index_to_direction[i]
