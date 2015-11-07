@@ -401,10 +401,6 @@ class Main:
                 self.calibrate += 1
                 continue
 
-            # debugging
-            # self.distance = 0;
-            # print self.heading
-
             # obstacle
             obstacle_detected = self.obstacle.detect_obstacles(self.sensors)
             if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
@@ -431,76 +427,57 @@ class Main:
 
             # navigation
             self.node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
+
+            # reached destination
             if destination == 1:
-                break
+                print "Reached end of map"
+                #check if we have reached actual dest
+                if self.building_start == self.building_dest and self.level_start == self.level_dest:
+                    break
+                else:
+                    print "Changing map"
+                    #reset destination
+                    destination = 0
+                    #update current map
+                    self.building_start = self.temp_building
+                    self.level_start = self.temp_level
+                    self.start = self.temp_start
+                    #get new temp_end
+                    self.switching_map()
+                    print self.building_start, self.level_start, self.start, self.temp_end
+                    #get new map
+                    self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
+                    # reset map
+                    self.north_at = self.navigator.get_northAt()
+                    self.position = self.navigator.get_position()
+                    self.x = []
+                    self.y = []
+                    self.x.append(self.position[0])
+                    self.y.append(self.position[1])
+                    continue
 
             # print self.node_dir
+            # check if at node
             if self.node_dir[0] == 0 and self.navigation%(MAX_NAVIGATION/2) == 0:
-                # print 'Reached node'
-                # print 'Heading: ', self.heading_r
-                # print 'Walk: ', str(walk_dir)
-                # print ''
+                print 'Reached node'
+                print 'Heading: ', self.heading_r
+                print 'Walk: ', str(walk_dir)
+                print ''
                 self.audio.play_number(self.node_dir[1], 'node')
                 pass
 
+            # not at node, periodic update
             if self.navigation >= MAX_NAVIGATION:
                 self.navigation = 0
                 print 'Navigation update'
-
-                node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
                 print 'Heading: ', self.heading_r
                 print 'Walk: ', str(walk_dir)
-
-                if destination == 1:
-                    print "dest reached"
-                    #check if we have reached actual dest
-                    if self.building_start == self.building_dest and self.level_start == self.level_dest:
-                        break
-                    else:
-                        print "changing map"
-                        #reset destination
-                        destination = 0
-                        #update current map
-                        self.building_start = self.temp_building
-                        self.level_start = self.temp_level
-                        self.start = self.temp_start
-                        #get new temp_end
-                        self.switching_map()
-                        print self.building_start, self.level_start, self.start, self.temp_end
-                        #get new map
-                        self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
-                        # reset map
-                        self.north_at = self.navigator.get_northAt()
-                        self.position = self.navigator.get_position()
-                        self.x = []
-                        self.y = []
-                        self.x.append(self.position[0])
-                        self.y.append(self.position[1])
-                else:
-                    # node feedback
-                    if node_dir[0] == 0:
-                        print 'Reached node' + str(node_dir[1])
-                        self.audio.play_number(node_dir[1], 'node')
-                    elif node_dir[0] == 1:
-                        print 'Going node'+ str(node_dir[1])
-                        self.audio.play_number(node_dir[1])
-                        # turn feedback
-                    if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
-                        if turn_dir[0] == 0:
-                            print 'Turn Left'
-                            self.sound_turndir = 0
-                        else:
-                            print 'Turn Right'
-                            self.sound_turndir = 1
-                # print 'Navigation update'
-                # print 'Heading: ', self.heading_r
-                # print 'Walk: ', str(walk_dir)
-                # print ''
+                print ''
 
                 if self.node_dir[0] == 1:
                     # print 'Going node'
                     self.audio.play_number(self.node_dir[1])
-                    # turn feedback
+                # turn feedback
                 if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
                     if turn_dir[0] == 0:
                         # print 'Turn Left'
@@ -515,9 +492,7 @@ class Main:
                 self.navigation += 1
 
             # TODO: WIFI
-            #Testing
-            #if self.navigation >= MAX_NAVIGATION:
-            #    self.test_position()
+
         print 'Reached destination'
         self.audio.play_sound('stop')
 
