@@ -24,7 +24,7 @@ ID_SENSOR_4         = '40'
 # limits
 MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
-MAX_NAVIGATION      = 50
+MAX_NAVIGATION      = 500
 MIN_TURN_ANGLE      = 40
 MAX_SOUND           = 120
 SOUND_AT_NODE       = 3
@@ -32,8 +32,8 @@ SOUND_GOING_TO      = 10
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
-MULTIPLIER_DISTANCE = 1.75
-MULTIPLIER_MAP      = 1.8
+MULTIPLIER_DISTANCE = 2.5
+MULTIPLIER_MAP      = 1.1
 MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
@@ -77,6 +77,7 @@ class Main:
         self.heading_r  = 999
         # navigation
         self.navigation = 0
+        self.node_dir   = None
         #sound delay
         self.sound = 0
         self.sound_turndir = 2
@@ -88,6 +89,7 @@ class Main:
         self.map_y      = []
         self.axis       = None
         self.line       = None
+        self.distance_t = 0
 
     # setup
     def setup(self):
@@ -129,6 +131,13 @@ class Main:
         input_id = 0
         keypress = ''
         while input_id < 4:
+            # debugging
+            self.building = 'COM1'
+            self.level = '2'
+            self.start = '37'
+            self.end = '18'
+            break
+
             keypress = self.user_input.get_input()
             if keypress == '':
                 continue
@@ -207,13 +216,16 @@ class Main:
         self.r = math.sqrt(self.acc[0]*self.acc[0] + self.acc[1]*self.acc[1] + self.acc[2]*self.acc[2])
 
         # calibration
-        if self.calibrate < MAX_CALIBRATE and self.calibrate >= 0:
-            self.limit = max(self.limit, self.r)
-        elif self.calibrate == MAX_CALIBRATE:
-            self.limit *= MULTIPLIER_LIMIT;
-        else:
+        if self.calibrate <= MAX_CALIBRATE and self.calibrate >= 0:
+            tmp_r = self.r * MULTIPLIER_LIMIT
+            self.limit = max(self.limit, tmp_r)
+        elif self.calibrate > MAX_CALIBRATE:
             if self.r > self.limit:
                 self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP
+        else:
+            pass
+
+        print abs(self.gyro[0]), '\t', abs(self.gyro[1]), '\t', abs(self.gyro[2])
 
         return True
 
@@ -225,7 +237,8 @@ class Main:
 
         # parsing of raw_values
         try:
-            self.heading = float(raw_values[0])
+            tmp = float(raw_values[0])
+            self.heading = tmp
         except ValueError:
             return False
 
@@ -243,15 +256,17 @@ class Main:
         self.position[0] = self.x[-1]
         self.position[1] = self.y[-1]
 
-        # prepare for new set of heading information
-        self.distance = 0
-
         # debugging
         self.line.set_xdata(self.x)
         self.line.set_ydata(self.y)
         self.axis.relim()
         plt.draw()
         plt.pause(0.0000001)
+        self.distance_t += self.distance
+        # print self.distance_t
+
+        # prepare for new set of heading information
+        self.distance = 0
 
         return True
 
@@ -263,11 +278,11 @@ class Main:
 
         # parsing of raw_values
         try:
-            index = int(data_id)/10 - 1
+            index = int(data_id)%10
             self.sensors[index][0] = int(raw_values[0])
             self.sensors[index][1] = int(raw_values[1])
 
-            if (index == 1 and self.calibrate < MAX_CALIBRATION and self.calibrate >= 0):
+            if (index == 1 and self.calibrate < MAX_CALIBRATE and self.calibrate >= 0):
                 self.obstacle.initial_calibration(self.sensors[index])
 
         except ValueError:
@@ -283,10 +298,11 @@ class Main:
             offset_y_angle = - (360 - self.north_at)
 
         # offset from y-axis
-        y_degree = self.heading_r + offset_y_angle
+        # y_degree = self.heading_r + offset_y_angle
+        y_degree = self.heading + offset_y_angle
         if y_degree == 360:
             y_degree = 0
-        elif yDeg < 0:
+        elif y_degree < 0:
             y_degree += 360
 
         # calculate position from heading
@@ -311,72 +327,80 @@ class Main:
                 continue
 
             # calibration
-            if self.calibrate < MAX_CALIBRATE:
+            if self.calibrate <= MAX_CALIBRATE:
                 if self.calibrate == 0:
                     print 'Start Calibration'
 
                 if self.calibrate == MAX_CALIBRATE:
                     print 'End Calibration'
                     print 'Limit: ', self.limit
+                    self.navigation = MAX_NAVIGATION
 
                 self.calibrate += 1
                 continue
 
+            # debugging
+            # self.distance = 0;
+            # print self.heading
+
             # obstacle
             obstacle_detected = self.obstacle.detect_obstacles(self.sensors)
             if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
-                print 'Beware step down'
+                # print 'Beware step down'
                 self.audio.play_sound('step_below')
             elif obstacle_detected == self.obstacle.OBSTACLE_STEP_UP:
-                print 'Beware step up'
+                # print 'Beware step up'
                 self.audio.play_sound('near_knee')
             else:
-                print "stop"
+                # print "stop"
                 self.audio.play_sound('stop')
 
             ##play sound
-            #if self.sound >= MAX_SOUND:
-            #    self.sound = 0
-            #    if self.sound_turndir == 0:
-            #        self.audio.play_sound('left')
-            #    elif self.sound_turndir == 1:
-            #        self.audio.play_sound('right')
-            #    else:
-            #        self.audio.play_sound('go')
-            #else:
-            #    self.sound += 1
+            if self.sound >= MAX_SOUND:
+               self.sound = 0
+               if self.sound_turndir == 0:
+                   self.audio.play_sound('left')
+               elif self.sound_turndir == 1:
+                   self.audio.play_sound('right')
+               else:
+                   self.audio.play_sound('go')
+            else:
+               self.sound += 1
 
             # navigation
+            self.node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
+            if destination == 1:
+                break
+
+            if self.node_dir[0] == 0 and self.navigation%(MAX_NAVIGATION/2) == 0:
+                # print 'Reached node'
+                # print 'Heading: ', self.heading_r
+                # print 'Walk: ', str(walk_dir)
+                # print ''
+                self.audio.play_number(self.node_dir[1], 'node')
+                pass
+
             if self.navigation >= MAX_NAVIGATION:
                 self.navigation = 0
-                print 'Navigation update'
+                # print 'Navigation update'
+                # print 'Heading: ', self.heading_r
+                # print 'Walk: ', str(walk_dir)
+                # print ''
 
-                node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
-
-                print 'Heading: ', self.heading_r
-                print 'Walk: ', str(walk_dir)
-
-                if destination == 1:
-                    break
-                else:
-                    # node feedback
-                    if node_dir[0] == 0:
-                        print 'Reached node'
-                        self.audio.play_number(node_dir[1], 'node')
-                    elif node_dir[0] == 1:
-                        print 'Going node'
-                        self.audio.play_number(node_dir[1])
-                        # turn feedback
-                    if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
-                        if turn_dir[0] == 0:
-                            print 'Turn Left'
-                            self.sound_turndir = 0
-                        else:
-                            print 'Turn Right'
-                            self.sound_turndir = 1
+                if self.node_dir[0] == 1:
+                    # print 'Going node'
+                    self.audio.play_number(self.node_dir[1])
+                    # turn feedback
+                if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
+                    if turn_dir[0] == 0:
+                        # print 'Turn Left'
+                        self.sound_turndir = 0
                     else:
-                        print 'Go'
-                        self.sound_turndir = 2
+                        # print 'Turn Right'
+                        self.sound_turndir = 1
+                else:
+                    # print 'Go'
+                    self.sound_turndir = 2
             else:
                 self.navigation += 1
 
@@ -384,6 +408,9 @@ class Main:
 
         print 'Reached destination'
         self.audio.play_sound('stop')
+
+        while (destination is not 0):
+            pass
 
     # debugging functions
     def get_map(self):
