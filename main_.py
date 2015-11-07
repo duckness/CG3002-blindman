@@ -38,6 +38,9 @@ MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
 MAP_COM2            = '2'
+#inter-map nodes
+COM1_to_COM2 = (31, 1)
+COM2_2_to_COM2_3 = (16, 11)
 
 class Main:
 
@@ -51,10 +54,16 @@ class Main:
         self.audio      = Audio()
         # map
         self.north_at   = 0
-        self.building   = ''
-        self.level      = ''
+        self.building_start= ''
+        self.building_dest = ''
+        self.temp_building = ''
+        self.level_start= ''
+        self.level_dest = ''
+        self.temp_level = ''
         self.start      = ''
-        self.end        = ''
+        self.temp_start = ''
+        self.temp_end   = ''
+        self.end_dest   = ''
         self.position   = [0,0]
         self.x          = []
         self.y          = []
@@ -89,14 +98,60 @@ class Main:
         self.axis       = None
         self.line       = None
 
+    def switching_map(self):
+        #COM1 to COM1 / COM2 to COM2
+        if self.building_start == self.building_dest:
+            #COM1-2 to COM1-2 / COM2-2 to COM2-2 / COM2-3 to COM2-3
+            if self.level_start == self.level_dest:
+                self.temp_end = self.end_dest
+            else:
+                #COM2-2 to COM2-3 / COM2-3 to COM2-2
+                self.temp_building = "COM2"
+                if self.level_dest == '3':
+                    #COM2-2 to COM2-3
+                    self.temp_end = COM2_2_to_COM2_3[0]
+                    self.temp_start = COM2_2_to_COM2_3[1]
+                    self.temp_level = '3'
+                else:
+                    #COM2-3 to COM2-2
+                    self.temp_end = COM2_2_to_COM2_3[1]
+                    self.temp_start = COM2_2_to_COM2_3[0]
+                    self.temp_level = '2'
+        #COM1 to COM2 / COM2 to COM1 
+        else:
+            #COM1-2 to COM2-2 / COM1-2 to COM2-3
+            if self.building_start == "COM1":
+                #route to COM2-2 first
+                self.temp_end = COM1_to_COM2[0]
+                self.temp_start = COM1_to_COM2[1]
+                self.temp_building = "COM2"
+                self.temp_level = '2'
+            #COM2-2 to COM1-2 / COM2-3 to COM1-2
+            else:
+                #COM2-2 to COM1-2
+                if self.level_dest == self.level_start: 
+                    self.temp_end = COM1_to_COM2[1]
+                    self.temp_start = COM1_to_COM2[0]
+                    self.temp_building = "COM1"
+                    self.temp_level = '2'
+                #COM2-3 to COM1-2
+                else: 
+                    #route to COM2-2 first
+                    self.temp_end = COM2_2_to_COM2_3[1]
+                    self.temp_start = COM2_2_to_COM2_3[0]
+                    self.temp_building = "COM2"
+                    self.temp_level = '2'                     
+
     # setup
     def setup(self):
         # input map info / all must be 0
         check_map, check_start, check_end = -1, -1, -1
         while (check_map!=0 or check_start!=0 or check_end!=0):
-            self.get_map_input()
-            check_map, check_start, check_end = self.navigator.calculate_path(self.building, self.level, self.start, self.end)
-
+            self.get_map_input()                    
+            self.switching_map()
+            check_map, check_start, check_end = self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end) 
+            print check_map, check_start, check_end
+        print "temp_end: " + str(self.temp_end)
         # setup map
         self.north_at = self.navigator.get_northAt()
         self.position = self.navigator.get_position()
@@ -128,31 +183,39 @@ class Main:
         #   but keep the variable index.
         input_id = 0
         keypress = ''
-        while input_id < 4:
+        while input_id < 6:
             keypress = self.user_input.get_input()
             if keypress == '':
                 continue
 
             if input_id == 0:
-                self.building = keypress
+                self.building_start = keypress
                 # defaults
-                if self.building == MAP_COM1:
-                    self.building = 'COM1'
-                elif self.building == MAP_COM2:
-                    self.building = 'COM2'
+                if self.building_start == MAP_COM1:
+                    self.building_start = 'COM1'
+                elif self.building_start == MAP_COM2:
+                    self.building_start = 'COM2'
             elif input_id == 1:
-                self.level = keypress
+                self.level_start = keypress
             elif input_id == 2:
                 self.start = int(keypress)
             elif input_id == 3:
-                self.end = int(keypress)
+                self.building_dest = keypress
+                if self.building_dest == MAP_COM1:
+                    self.building_dest = 'COM1'
+                elif self.building_dest == MAP_COM2:
+                    self.building_dest = 'COM2'
+            elif input_id == 4:
+                self.level_dest = keypress
+            elif input_id == 5:
+                self.end_dest = int(keypress)
             else:
                 input_id = -1
 
             input_id += 1
 
         print 'User Input: ',
-        print self.building, self.level, str(self.start), str(self.end)
+        print self.building_start, self.level_start, str(self.start), self.building_dest, self.level_dest, str(self.end_dest)
 
     # get serial data
     def get_mega_data(self):
@@ -334,17 +397,17 @@ class Main:
                 print "stop"
                 self.audio.play_sound('stop')
 
-            ##play sound
-            #if self.sound >= MAX_SOUND:
-            #    self.sound = 0
-            #    if self.sound_turndir == 0:
-            #        self.audio.play_sound('left')
-            #    elif self.sound_turndir == 1:
-            #        self.audio.play_sound('right')
-            #    else:
-            #        self.audio.play_sound('go')
-            #else:
-            #    self.sound += 1
+            #play sound
+            if self.sound >= MAX_SOUND:
+                self.sound = 0
+                if self.sound_turndir == 0:
+                    self.audio.play_sound('left')
+                elif self.sound_turndir == 1:
+                    self.audio.play_sound('right')
+                else:
+                    self.audio.play_sound('go')
+            else:
+                self.sound += 1
 
             # navigation
             if self.navigation >= MAX_NAVIGATION:
@@ -352,19 +415,41 @@ class Main:
                 print 'Navigation update'
 
                 node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
-
                 print 'Heading: ', self.heading_r
                 print 'Walk: ', str(walk_dir)
 
                 if destination == 1:
-                    break
+                    print "dest reached"
+                    #check if we have reached actual dest
+                    if self.building_start == self.building_dest and self.level_start == self.level_dest:
+                        break
+                    else:
+                        print "changing map"
+                        #reset destination
+                        destination = 0
+                        #update current map
+                        self.building_start = self.temp_building
+                        self.level_start = self.temp_level
+                        self.start = self.temp_start
+                        #get new temp_end
+                        self.switching_map()
+                        print self.building_start, self.level_start, self.start, self.temp_end
+                        #get new map
+                        self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
+                        # reset map
+                        self.north_at = self.navigator.get_northAt()
+                        self.position = self.navigator.get_position()
+                        self.x = []
+                        self.y = []
+                        self.x.append(self.position[0])
+                        self.y.append(self.position[1])
                 else:
                     # node feedback
                     if node_dir[0] == 0:
-                        print 'Reached node'
+                        print 'Reached node' + str(node_dir[1])
                         self.audio.play_number(node_dir[1], 'node')
                     elif node_dir[0] == 1:
-                        print 'Going node'
+                        print 'Going node'+ str(node_dir[1])
                         self.audio.play_number(node_dir[1])
                         # turn feedback
                     if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
@@ -379,16 +464,18 @@ class Main:
                         self.sound_turndir = 2
             else:
                 self.navigation += 1
-
+            
             # TODO: WIFI
-
+            #Testing
+            #if self.navigation >= MAX_NAVIGATION:
+            #    self.test_position()
         print 'Reached destination'
         self.audio.play_sound('stop')
 
     # debugging functions
     def get_map(self):
         coord = []
-        url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?' + 'Building=' + self.building + '&Level=' + self.level
+        url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?' + 'Building=' + self.building_start + '&Level=' + self.level_start
 
         try:
             data = json.loads(requests.get(url).text)
@@ -402,5 +489,10 @@ class Main:
             print url
             print 'Failed to fetch map.'
             pass
+
+    def test_position(self):
+         self.position[0] = int(raw_input("Enter position x "))
+         self.position[1] = int(raw_input("Enter position y "))
+         #self.heading_r = float(raw_input("Enter heading "))
 #run this
 Main().main()
