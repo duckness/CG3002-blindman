@@ -26,9 +26,6 @@ MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
 MAX_NAVIGATION      = 500
 MIN_TURN_ANGLE      = 40
-MAX_SOUND           = 120
-SOUND_AT_NODE       = 3
-SOUND_GOING_TO      = 10
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
@@ -53,20 +50,20 @@ class Main:
         self.user_input = UserInput()
         self.audio      = Audio()
         # map
-        self.north_at   = 0
-        self.building_start= ''
-        self.building_dest = ''
-        self.temp_building = ''
-        self.level_start= ''
-        self.level_dest = ''
-        self.temp_level = ''
-        self.start      = ''
-        self.temp_start = ''
-        self.temp_end   = ''
-        self.end_dest   = ''
-        self.position   = [0,0]
-        self.x          = []
-        self.y          = []
+        self.north_at       = 0
+        self.building_start = ''
+        self.building_dest  = ''
+        self.temp_building  = ''
+        self.level_start    = ''
+        self.level_dest     = ''
+        self.temp_level     = ''
+        self.start          = ''
+        self.temp_start     = ''
+        self.temp_end       = ''
+        self.end_dest       = ''
+        self.position       = [0,0]
+        self.x              = []
+        self.y              = []
         # hardware
         self.dt         = 0
         self.acc        = [0,0,0]
@@ -87,11 +84,6 @@ class Main:
         # navigation
         self.navigation = 0
         self.node_dir   = None
-        #sound delay
-        self.sound = 0
-        self.sound_turndir = 2
-        self.at_node_count = SOUND_AT_NODE
-        self.going_to_node_count = SOUND_GOING_TO
         # debugging
         self.log        = None
         self.map_x      = []
@@ -147,13 +139,11 @@ class Main:
     # setup
     def setup(self):
         # input map info / all must be 0
-        check_map, check_start, check_end = -1, -1, -1
-        while (check_map!=0 or check_start!=0 or check_end!=0):
-            self.get_map_input()
-            self.switching_map()
-            check_map, check_start, check_end = self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
-            print check_map, check_start, check_end
+        self.get_map_input()
+        self.switching_map()
+        self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
         print "temp_end: " + str(self.temp_end)
+
         # setup map
         self.north_at = self.navigator.get_northAt()
         self.position = self.navigator.get_position()
@@ -188,10 +178,12 @@ class Main:
 
         while input_id < 6:
             # debugging
-            self.building = 'COM1'
-            self.level = '2'
+            self.building_start = 'COM1'
+            self.level_start = '2'
             self.start = '1'
-            self.end = '26'
+            self.building_dest = 'COM1'
+            self.level_dest = '2'
+            self.end_dest = '26'
             break
 
             keypress = self.user_input.get_input()
@@ -311,7 +303,7 @@ class Main:
         sections = round(self.heading/MULTIPLIER_HEADING, 0)
         self.heading_r = sections * MULTIPLIER_HEADING
         self.heading_r = self.heading
-        
+
         # position
         pos_offset = self.process_position()
         self.x.append(self.x[-1] + pos_offset[0])
@@ -343,6 +335,9 @@ class Main:
         try:
             index = int(data_id)%10
             self.sensors[index][0] = int(raw_values[0])
+            tmp = int(raw_values[1])
+            if tmp > 150:
+                tmp = 150
             self.sensors[index][1] = int(raw_values[1])
 
             if (index == 1 and self.calibrate < MAX_CALIBRATE and self.calibrate >= 0):
@@ -403,27 +398,16 @@ class Main:
 
             # obstacle
             obstacle_detected = self.obstacle.detect_obstacles(self.sensors)
-            if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
-                # print 'Beware step down'
-                self.audio.play_sound('step_below')
-            elif obstacle_detected == self.obstacle.OBSTACLE_STEP_UP:
-                # print 'Beware step up'
-                self.audio.play_sound('near_knee')
-            else:
-                # print "stop"
-                self.audio.play_sound('stop')
-
-            #play sound
-            if self.sound >= MAX_SOUND:
-                self.sound = 0
-                if self.sound_turndir == 0:
-                    self.audio.play_sound('left')
-                elif self.sound_turndir == 1:
-                    self.audio.play_sound('right')
+            if obstacle_detected != self.obstacle.NO_OBSTACLES:
+                if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
+                    print 'Beware: Step DOWN',
+                    self.audio.play_sound('step_below')
+                elif obstacle_detected == self.obstacle.OBSTACLE_STEP_UP:
+                    print 'Beware: Step UP',
+                    self.audio.play_sound('near_knee')
                 else:
-                    self.audio.play_sound('go')
-            else:
-                self.sound += 1
+                    print 'Beware: STOP',
+                    self.audio.play_sound('stop')
 
             # navigation
             self.node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
@@ -459,20 +443,20 @@ class Main:
             # print self.node_dir
             # check if at node
             if self.node_dir[0] == 0 and self.navigation%(MAX_NAVIGATION/2) == 0:
+                print ''
                 print 'Reached node'
                 print 'Heading: ', self.heading_r
                 print 'Walk: ', str(walk_dir)
-                print ''
                 self.audio.play_number(self.node_dir[1], 'node')
                 pass
 
             # not at node, periodic update
             if self.navigation >= MAX_NAVIGATION:
                 self.navigation = 0
+                print ''
                 print 'Navigation update'
                 print 'Heading: ', self.heading_r
                 print 'Walk: ', str(walk_dir)
-                print ''
 
                 if self.node_dir[0] == 1:
                     # print 'Going node'
