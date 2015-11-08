@@ -10,8 +10,8 @@ SENSOR_TOWARDS_GROUND = 1
 AVG_HEIGHT_STAIRS = 15
 
 PERCENTAGE_OBSTACLE = 0.6
-PERCENTAGE_MIN = 0.9
-PERCENTAGE_MAX = 1.1
+PERCENTAGE_MIN = 1
+PERCENTAGE_MAX = 1
 BUFFER_MIN = 0.95
 BUFFER_MAX = 1.05
 
@@ -113,16 +113,6 @@ class ObstacleCues:
         self.calibrate.sort()
         self.max_height_breathe = self.calibrate[-1]
         self.min_height_breathe = self.calibrate[0]
-        # ir_max = cali_arr[1] * BUFFER_MAX
-        # ir_min = cali_arr[1] * BUFFER_MIN
-        # if ir_max > 150:
-        #     ir_max = self.max_height_breathe
-        # if ir_min < 25:
-        #     ir_min = self.min_height_breathe
-        #
-        # self.max_height_breathe = max(self.max_height_breathe, ir_max)
-        # self.min_height_breathe = min(self.min_height_breathe, ir_min)
-        #
         print self.max_height_breathe, self.min_height_breathe
 
     def detect_obstacles(self,obstacles):

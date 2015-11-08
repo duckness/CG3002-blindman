@@ -26,6 +26,7 @@ MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
 MAX_NAVIGATION      = 500
 MIN_TURN_ANGLE      = 40
+MAX_OBSTACLE        = MAX_NAVIGATION/2
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
@@ -44,11 +45,11 @@ class Main:
     # initialize class
     def __init__(self):
         # modules
-        self.processor  = SerialProcessor()
-        self.navigator  = Navigator()
-        self.obstacle   = ObstacleCues()
-        self.user_input = UserInput()
-        self.audio      = Audio()
+        self.processor      = SerialProcessor()
+        self.navigator      = Navigator()
+        self.obstacle       = ObstacleCues()
+        self.user_input     = UserInput()
+        self.audio          = Audio()
         # map
         self.north_at       = 0
         self.building_start = ''
@@ -65,32 +66,33 @@ class Main:
         self.x              = []
         self.y              = []
         # hardware
-        self.dt         = 0
-        self.acc        = [0,0,0]
-        self.gyro       = [0,0,0]
-        self.magno      = [0,0,0]
-        self.heading    = 999
-        self.pressure   = 0
-        self.altitude   = 0
-        self.temp       = 0
-        self.sensors    = [[0,0],[0,0],[0,0],[0,0]]
+        self.dt             = 0
+        self.acc            = [0,0,0]
+        self.gyro           = [0,0,0]
+        self.magno          = [0,0,0]
+        self.heading        = 999
+        self.pressure       = 0
+        self.altitude       = 0
+        self.temp           = 0
+        self.sensors        = [[0,0],[0,0],[0,0],[0,0]]
         # calibration
-        self.calibrate  = MIN_CALIBRATE
-        self.limit      = 0
+        self.calibrate      = MIN_CALIBRATE
+        self.limit          = 0
         # calculations
-        self.r          = 0
-        self.distance   = 0
-        self.heading_r  = 999
+        self.r              = 0
+        self.distance       = 0
+        self.heading_r      = 999
         # navigation
-        self.navigation = 0
-        self.node_dir   = None
+        self.navigation     = 0
+        self.node_dir       = None
+        self.obstacle_count = 0
         # debugging
-        self.log        = None
-        self.map_x      = []
-        self.map_y      = []
-        self.axis       = None
-        self.line       = None
-        self.distance_t = 0
+        self.log            = None
+        self.map_x          = []
+        self.map_y          = []
+        self.axis           = None
+        self.line           = None
+        self.distance_t     = 0
 
     def switching_map(self):
         #COM1 to COM1 / COM2 to COM2
@@ -397,16 +399,23 @@ class Main:
                 continue
 
             # obstacle
+            if self.obstacle_count > 0:
+                self.obstacle_count -= 1
+
             obstacle_detected = self.obstacle.detect_obstacles(self.sensors)
-            if obstacle_detected != self.obstacle.NO_OBSTACLES:
+            if obstacle_detected != self.obstacle.NO_OBSTACLES and self.obstacle_count == 0:
+                # start obstacle counter + delay node update
+                self.obstacle_count = MAX_OBSTACLE
+                self.navigation /= 2
+
                 if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
-                    print 'Beware: Step DOWN',
+                    print 'Beware: Step DOWN'
                     self.audio.play_sound('step_below')
                 elif obstacle_detected == self.obstacle.OBSTACLE_STEP_UP:
-                    print 'Beware: Step UP',
+                    print 'Beware: Near KNEE'
                     self.audio.play_sound('near_knee')
                 else:
-                    print 'Beware: STOP',
+                    print 'Beware: STOP'
                     self.audio.play_sound('stop')
 
             # navigation
@@ -447,6 +456,7 @@ class Main:
                 print 'Reached node'
                 print 'Heading: ', self.heading_r
                 print 'Walk: ', str(walk_dir)
+                print ''
                 self.audio.play_number(self.node_dir[1], 'node')
                 pass
 
@@ -457,6 +467,7 @@ class Main:
                 print 'Navigation update'
                 print 'Heading: ', self.heading_r
                 print 'Walk: ', str(walk_dir)
+                print ''
 
                 if self.node_dir[0] == 1:
                     # print 'Going node'
