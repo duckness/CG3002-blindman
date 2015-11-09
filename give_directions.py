@@ -252,10 +252,8 @@ class GiveDirections:
 
         return ang
 
-    def get_nodes_position(self):
+    def get_node_position(self):
         x1 = self.maplist[self.prevNode]['x']
         y1 = self.maplist[self.prevNode]['y']
-        x2 = self.maplist[self.nextNode]['x']
-        y2 = self.maplist[self.nextNode]['y']
-        return (x1, y1, x2, y2)
+        return (x1, y1)
 

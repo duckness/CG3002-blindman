@@ -41,8 +41,10 @@ class Navigator:
     def heading_from_prev_node(self):
         return self.giveDir.heading_from_prev_node()
 
-    def get_nodes_position(self):
-        return self.giveDir.get_nodes_position()
+    #returns (x, y) (TUPLE) coordinates of the node position
+    def get_node_position(self):
+        return self.giveDir.get_node_position()
+
 #testing codes below
     #def main(self):
         #self.calculate_path("COM1", "2", "15", "1") #setup
