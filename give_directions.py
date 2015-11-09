@@ -3,7 +3,7 @@ from path_calculator import PathCalculator
 
 import math
 HEADING_CONSTANT = 22.5
-DISTANCE_CONSTANT = 0.12
+DISTANCE_CONSTANT = 0.05
 
 class GiveDirections:
 
@@ -256,4 +256,3 @@ class GiveDirections:
         x1 = self.maplist[self.prevNode]['x']
         y1 = self.maplist[self.prevNode]['y']
         return (x1, y1)
-

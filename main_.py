@@ -24,14 +24,16 @@ ID_SENSOR_4         = '40'
 # limits
 MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
-MAX_NAVIGATION      = 500
+MAX_NAVIGATION      = 300
 MIN_TURN_ANGLE      = 40
 MAX_OBSTACLE        = MAX_NAVIGATION/2
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
-MULTIPLIER_DISTANCE = 2.5
-MULTIPLIER_MAP      = 1.12
+# MULTIPLIER_DISTANCE = 2.5
+# MULTIPLIER_MAP      = 1.12
+MULTIPLIER_DISTANCE = 2
+MULTIPLIER_MAP      = 1
 MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
@@ -78,6 +80,7 @@ class Main:
         # calibration
         self.calibrate      = MIN_CALIBRATE
         self.limit          = 0
+        self.node_shift     = False
         # calculations
         self.r              = 0
         self.distance       = 0
@@ -144,7 +147,7 @@ class Main:
         self.get_map_input()
         self.switching_map()
         self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
-        print "temp_end: " + str(self.temp_end)
+        print 'temp_end: ' + str(self.temp_end)
 
         # setup map
         self.north_at = self.navigator.get_northAt()
@@ -182,10 +185,10 @@ class Main:
             # debugging
             self.building_start = 'COM1'
             self.level_start = '2'
-            self.start = '1'
+            self.start = '16'
             self.building_dest = 'COM1'
             self.level_dest = '2'
-            self.end_dest = '26'
+            self.end_dest = '34'
             break
 
             keypress = self.user_input.get_input()
@@ -219,7 +222,7 @@ class Main:
             input_id += 1
 
         print 'User Input: ',
-        print self.building_start, self.level_start, str(self.start), self.building_dest, self.level_dest, str(self.end_dest)
+        print  self.building_start, self.level_start, str(self.start), self.building_dest, self.level_dest, str(self.end_dest)
 
     # get serial data
     def get_mega_data(self):
@@ -305,6 +308,10 @@ class Main:
         sections = round(self.heading/MULTIPLIER_HEADING, 0)
         self.heading_r = sections * MULTIPLIER_HEADING
         self.heading_r = self.heading
+
+        # debugging
+        # print self.heading
+        # self.distance = 0
 
         # position
         pos_offset = self.process_position()
@@ -409,17 +416,44 @@ class Main:
                 self.navigation /= 2
 
                 if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
-                    print 'Beware: Step DOWN'
+                    # print 'Beware: Step DOWN'
                     self.audio.play_sound('step_below')
                 elif obstacle_detected == self.obstacle.OBSTACLE_STEP_UP:
-                    print 'Beware: Near KNEE'
+                    # print 'Beware: Near KNEE'
                     self.audio.play_sound('near_knee')
                 else:
-                    print 'Beware: STOP'
+                    # print 'Beware: STOP'
                     self.audio.play_sound('stop')
 
             # navigation
             self.node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
+
+            # check if at node
+            if self.node_dir[0] == 0 and self.node_shift == False:
+                print ''
+                print 'Reached node'
+                print 'Heading: ', self.heading_r
+                print 'Walk: ', str(walk_dir)
+                print ''
+                self.audio.play_number(self.node_dir[1], 'node')
+                pass
+
+            # node shift into the right coordinates
+            if self.node_dir[0] == 0 or destination == 1:
+                # shift node for drift
+                if self.node_shift == False:
+                    tmp = self.navigator.get_node_position()
+                    print tmp
+                    self.x.append(tmp[0])
+                    self.y.append(tmp[1])
+                    self.line.set_xdata(self.x)
+                    self.line.set_ydata(self.y)
+                    self.axis.relim()
+                    plt.draw()
+                    plt.pause(0.0000001)
+                    self.node_shift = True
+            else:
+                self.node_shift = False
 
             # reached destination
             if destination == 1:
@@ -437,7 +471,7 @@ class Main:
                     self.start = self.temp_start
                     #get new temp_end
                     self.switching_map()
-                    print self.building_start, self.level_start, self.start, self.temp_end
+                    print  self.building_start, self.level_start, self.start, self.temp_end
                     #get new map
                     self.navigator.calculate_path(self.building_start, self.level_start, self.start, self.temp_end)
                     # reset map
@@ -449,19 +483,8 @@ class Main:
                     self.y.append(self.position[1])
                     continue
 
-            # print self.node_dir
-            # check if at node
-            if self.node_dir[0] == 0 and self.navigation%(MAX_NAVIGATION/2) == 0:
-                print ''
-                print 'Reached node'
-                print 'Heading: ', self.heading_r
-                print 'Walk: ', str(walk_dir)
-                print ''
-                self.audio.play_number(self.node_dir[1], 'node')
-                pass
-
             # not at node, periodic update
-            if self.navigation >= MAX_NAVIGATION:
+            if self.navigation >= MAX_NAVIGATION and self.node_dir[0] != 0:
                 self.navigation = 0
                 print ''
                 print 'Navigation update'
@@ -508,7 +531,7 @@ class Main:
                     self.map_x.append(int(node['x']))
                     self.map_y.append(int(node['y']))
         except:
-            print url
+            print  url
             print 'Failed to fetch map.'
             pass
 
