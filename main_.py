@@ -88,6 +88,7 @@ class Main:
         # navigation
         self.navigation     = 0
         self.node_dir       = None
+        self.prev_node      = None
         self.obstacle_count = 0
         # debugging
         self.log            = None
@@ -185,7 +186,7 @@ class Main:
             # debugging
             self.building_start = 'COM1'
             self.level_start = '2'
-            self.start = '16'
+            self.start = '37'
             self.building_dest = 'COM1'
             self.level_dest = '2'
             self.end_dest = '34'
@@ -440,12 +441,24 @@ class Main:
 
             # node shift into the right coordinates
             if self.node_dir[0] == 0 or destination == 1:
-                # shift node for drift
+                tmp = self.navigator.get_node_position()
+                node = [0, 0]
+                node[0] = tmp[0]
+                node[1] = tmp[1]
+
+                if self.prev_node == None:
+                    self.prev_node = node
+                else:
+                    if self.prev_node[0] == node[0]:
+                        node[1] -= abs(self.prev_node[1] - node[1])*0.05
+                    elif self.prev_node[1] == node[1]:
+                        node[0] -= abs(self.prev_node[0] - node[0])*0.05
+                    self.prev_node[0] = tmp[0]
+                    self.prev_node[1] = tmp[1]
+
                 if self.node_shift == False:
-                    tmp = self.navigator.get_node_position()
-                    print tmp
-                    self.x.append(tmp[0])
-                    self.y.append(tmp[1])
+                    self.x.append(node[0])
+                    self.y.append(node[1])
                     self.line.set_xdata(self.x)
                     self.line.set_ydata(self.y)
                     self.axis.relim()

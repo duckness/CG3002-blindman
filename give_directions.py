@@ -164,7 +164,7 @@ class GiveDirections:
                 node_direction = (2, 0, 0)
                 destination = 1
 
-            self.prevRadius = 0.12*dist_between_nodes
+            self.prevRadius = DISTANCE_CONSTANT*dist_between_nodes
             self.prevNode = self.nextNode
             self.nextNode = self.get_next_node()
 
