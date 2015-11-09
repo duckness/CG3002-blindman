@@ -148,7 +148,7 @@ class GiveDirections:
 
         #if distance from current to first node < 12% of the distance between both nodes
         if((dist_from_prev_node < (DISTANCE_CONSTANT*dist_between_nodes))):
-            bigger = max(self.prevRadius, 0.12*dist_between_nodes, 88)
+            bigger = max(self.prevRadius, DISTANCE_CONSTANT*dist_between_nodes, 88)
             if(bigger > dist_from_prev_node):
                 node_direction = "At node " + str(self.prevNode)
                 node_direction = (0, self.prevNode, self.check_heading(heading))
@@ -238,7 +238,6 @@ class GiveDirections:
         #     ang -= self.northAt
 
     def heading_from_prev_node(self):
-
         x1 = self.maplist[self.prevNode]['x']
         y1 = self.maplist[self.prevNode]['y']
         x2 = self.maplist[self.nextNode]['x']
@@ -252,3 +251,11 @@ class GiveDirections:
             ang += 360
 
         return ang
+
+    def get_nodes_position(self):
+        x1 = self.maplist[self.prevNode]['x']
+        y1 = self.maplist[self.prevNode]['y']
+        x2 = self.maplist[self.nextNode]['x']
+        y2 = self.maplist[self.nextNode]['y']
+        return (x1, y1, x2, y2)
+
