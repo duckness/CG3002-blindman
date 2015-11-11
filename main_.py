@@ -24,23 +24,23 @@ ID_SENSOR_4         = '40'
 # limits
 MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
-MAX_NAVIGATION      = 300
-MIN_TURN_ANGLE      = 40
+MAX_NAVIGATION      = 250
+MIN_TURN_ANGLE      = 10
 MAX_OBSTACLE        = MAX_NAVIGATION/2
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
 MULTIPLIER_G        = 981 # cm
-# MULTIPLIER_DISTANCE = 2.5
-# MULTIPLIER_MAP      = 1.12
 MULTIPLIER_DISTANCE = 2
 MULTIPLIER_MAP      = 1
 MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
 MAP_COM2            = '2'
-#inter-map nodes
-COM1_to_COM2 = (31, 1)
-COM2_2_to_COM2_3 = (16, 11)
+# inter-map nodes
+COM1_to_COM2        = (31, 1)
+COM2_2_to_COM2_3    = (16, 11)
+# buffers
+NODE_BUFFER         = 0.05
 
 class Main:
 
@@ -84,7 +84,6 @@ class Main:
         # calculations
         self.r              = 0
         self.distance       = 0
-        self.heading_r      = 999
         # navigation
         self.navigation     = 0
         self.node_dir       = None
@@ -171,7 +170,7 @@ class Main:
     # get map input
     def get_map_input(self):
         print 'Input map information'
-        self.audio.play_sound('trapped')
+        self.audio.queue_sound('trapped')
 
         # parsing of user input
         # 0: building / 1: level / 2: start / 3: end
@@ -186,7 +185,7 @@ class Main:
             # debugging
             self.building_start = 'COM1'
             self.level_start = '2'
-            self.start = '37'
+            self.start = '10'
             self.building_dest = 'COM1'
             self.level_dest = '2'
             self.end_dest = '34'
@@ -306,9 +305,9 @@ class Main:
             return True
 
         # calculations
-        sections = round(self.heading/MULTIPLIER_HEADING, 0)
-        self.heading_r = sections * MULTIPLIER_HEADING
-        self.heading_r = self.heading
+        # sections = round(self.heading/MULTIPLIER_HEADING, 0)
+        # self.heading = sections * MULTIPLIER_HEADING
+        # self.heading = self.heading
 
         # debugging
         # print self.heading
@@ -346,6 +345,8 @@ class Main:
             index = int(data_id)%10
             self.sensors[index][0] = int(raw_values[0])
             tmp = int(raw_values[1])
+            # if index == 1:
+            #     print tmp
             if tmp > 150:
                 tmp = 150
             self.sensors[index][1] = int(raw_values[1])
@@ -366,7 +367,7 @@ class Main:
             offset_y_angle = - (360 - self.north_at)
 
         # offset from y-axis
-        y_degree = self.heading_r + offset_y_angle
+        y_degree = self.heading + offset_y_angle
         if y_degree == 360:
             y_degree = 0
         elif y_degree < 0:
@@ -401,7 +402,7 @@ class Main:
                 if self.calibrate == MAX_CALIBRATE:
                     print 'End Calibration'
                     print 'Limit: ', self.limit
-                    self.navigation = MAX_NAVIGATION
+                    self.navigation = MAX_NAVIGATION+1
 
                 self.calibrate += 1
                 continue
@@ -414,29 +415,32 @@ class Main:
             if obstacle_detected != self.obstacle.NO_OBSTACLES and self.obstacle_count == 0:
                 # start obstacle counter + delay node update
                 self.obstacle_count = MAX_OBSTACLE
-                self.navigation /= 2
+                self.navigation -= self.navigation/3
 
+                print self.sensors[1][1]
                 if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
-                    # print 'Beware: Step DOWN'
-                    self.audio.play_sound('step_below')
+                    print 'Beware: Step DOWN'
+                    self.audio.queue_sound('step_below')
+                    # self.navigation += self.navigation/2
+                    pass
                 elif obstacle_detected == self.obstacle.OBSTACLE_STEP_UP:
-                    # print 'Beware: Near KNEE'
-                    self.audio.play_sound('near_knee')
+                    print 'Beware: Near KNEE'
+                    self.audio.queue_sound('near_knee')
                 else:
-                    # print 'Beware: STOP'
-                    self.audio.play_sound('stop')
+                    print 'Beware: STOP'
+                    self.audio.queue_sound('stop')
 
             # navigation
-            self.node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading_r)
+            self.node_dir, turn_dir, walk_dir, destination = self.navigator.get_directions(self.position[0], self.position[1], self.heading)
 
             # check if at node
             if self.node_dir[0] == 0 and self.node_shift == False:
                 print ''
                 print 'Reached node'
-                print 'Heading: ', self.heading_r
+                print 'Heading: ', self.heading
                 print 'Walk: ', str(walk_dir)
                 print ''
-                self.audio.play_number(self.node_dir[1], 'node')
+                self.audio.queue_sound('node', self.node_dir[1])
                 pass
 
             # node shift into the right coordinates
@@ -450,9 +454,9 @@ class Main:
                     self.prev_node = node
                 else:
                     if self.prev_node[0] == node[0]:
-                        node[1] -= abs(self.prev_node[1] - node[1])*0.05
+                        node[1] -= abs(self.prev_node[1] - node[1])*NODE_BUFFER
                     elif self.prev_node[1] == node[1]:
-                        node[0] -= abs(self.prev_node[0] - node[0])*0.05
+                        node[0] -= abs(self.prev_node[0] - node[0])*NODE_BUFFER
                     self.prev_node[0] = tmp[0]
                     self.prev_node[1] = tmp[1]
 
@@ -497,37 +501,60 @@ class Main:
                     continue
 
             # not at node, periodic update
-            if self.navigation >= MAX_NAVIGATION and self.node_dir[0] != 0:
+            if self.navigation >= MAX_NAVIGATION:
                 self.navigation = 0
                 print ''
                 print 'Navigation update'
-                print 'Heading: ', self.heading_r
+                print 'Heading: ', self.heading
                 print 'Walk: ', str(walk_dir)
                 print ''
 
                 if self.node_dir[0] == 1:
-                    # print 'Going node'
-                    self.audio.play_number(self.node_dir[1])
+                    print 'Going node', self.node_dir[1]
+                    self.audio.queue_sound(self.node_dir[1])
                 # turn feedback
+                # required_heading = self.navigator.heading_from_prev_node()
+                # if self.heading > required_heading and self.heading - required_heading >= MIN_TURN_ANGLE:
+                #     print 'Turn Left'
+                #     print ''
+                #     self.audio.queue_sound('left')
+                # elif self.heading < required_heading and required_heading - self.heading >= MIN_TURN_ANGLE:
+                #     print 'Turn Right'
+                #     print ''
+                #     self.audio.queue_sound('right')
+                # else:
+                #     print 'Go'
+                #     print ''
+                #     self.audio.queue_sound('go')
+
+
                 if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
                     if turn_dir[0] == 0:
-                        # print 'Turn Left'
-                        self.sound_turndir = 0
+                        print 'Turn Left'
+                        print ''
+                        # self.sound_turndir = 0
+                        self.audio.queue_sound('left')
                     else:
-                        # print 'Turn Right'
-                        self.sound_turndir = 1
+                        print 'Turn Right'
+                        print ''
+                        # self.sound_turndir = 1
+                        self.audio.queue_sound('right')
                 else:
-                    # print 'Go'
-                    self.sound_turndir = 2
+                    print 'Go'
+                    print ''
+                    # self.sound_turndir = 2
+                    self.audio.queue_sound('go')
             else:
                 self.navigation += 1
 
             # TODO: WIFI
 
         print 'Reached destination'
-        self.audio.play_sound('stop')
+        self.audio.queue_sound('trapped', 'trapped')
 
         while (destination is not 0):
+            print 'done done done'
+            self.audio.sound_dequeue()
             pass
 
     # debugging functions
@@ -551,6 +578,6 @@ class Main:
     def test_position(self):
          self.position[0] = int(raw_input("Enter position x "))
          self.position[1] = int(raw_input("Enter position y "))
-         #self.heading_r = float(raw_input("Enter heading "))
+         #self.heading = float(raw_input("Enter heading "))
 #run this
 Main().main()

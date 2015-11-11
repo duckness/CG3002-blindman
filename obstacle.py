@@ -7,11 +7,11 @@ import math
 MIN_DISTANCE_us = 50
 MIN_DISTANCE_ir = 50
 SENSOR_TOWARDS_GROUND = 1
-AVG_HEIGHT_STAIRS = 15
+STEP_HEIGHT = 20
 
 PERCENTAGE_OBSTACLE = 0.6
-PERCENTAGE_MIN = 1
-PERCENTAGE_MAX = 1
+PERCENTAGE_MIN = 0.8
+PERCENTAGE_MAX = 1.2
 BUFFER_MIN = 0.95
 BUFFER_MAX = 1.05
 
@@ -111,8 +111,8 @@ class ObstacleCues:
         if len(self.calibrate) == 0:
             return
         self.calibrate.sort()
-        self.max_height_breathe = self.calibrate[-1]
-        self.min_height_breathe = self.calibrate[0]
+        self.max_height_breathe = sum(self.calibrate)/len(self.calibrate)
+        self.min_height_breathe = sum(self.calibrate)/len(self.calibrate)
         print self.max_height_breathe, self.min_height_breathe
 
     def detect_obstacles(self,obstacles):
@@ -130,12 +130,14 @@ class ObstacleCues:
                         self.audio.play_beep(alert_direction)
 
             else:
-                if value[1] < (self.min_height_breathe * PERCENTAGE_MIN):  #i/r sensor
+                # if value[1] < (self.min_height_breathe * PERCENTAGE_MIN):  #i/r sensor
+                if self.min_height_breathe - value[1] > STEP_HEIGHT and self.min_height_breathe - value[1] < STEP_HEIGHT*2:
                     alert_direction = self.index_to_direction[i]
                     #print "obstacle at " + str(alert_direction)
                     #print 1, value[1], self.min_height_breathe
                     return self.OBSTACLE_STEP_UP
-                elif value[1] > (self.max_height_breathe * PERCENTAGE_MAX):
+                # elif value[1] > (self.max_height_breathe * PERCENTAGE_MAX):
+                elif value[1] - self.max_height_breathe > STEP_HEIGHT and value[1] - self.max_height_breathe < STEP_HEIGHT*2:
                     #print 1, value[1], self.max_height_breathe
                     return self.OBSTACLE_STEP_DOWN
                 if (value[0] <= MIN_DISTANCE_us and value[0] > 0):

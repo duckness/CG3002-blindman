@@ -5,7 +5,9 @@
 import serial
 import operator
 import math
-mega = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=3)
+# mega = serial.Serial(port='/dev/ttyUSB0', baudrate=115200, timeout=3)
+# mega = serial.Serial(port='/dev/cu.usbserial-AH02MFHB', baudrate=115200, timeout=3)
+mega = open('Serial1447247458.19.txt','r')
 
 class SerialProcessor:
     def get_checksum(self, str):

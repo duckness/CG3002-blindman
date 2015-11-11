@@ -50,7 +50,7 @@ class Audio:
     # args takes in strings that represent sound files in the sounds dictionary
     def queue_sound(self, *args):
         for a in args:
-            if a.isdigit():
+            if str(a).isdigit():
                 number = str(a)
                 for c in number:
                     self.number_queue.append(c)
@@ -75,4 +75,3 @@ class Audio:
     #a.sound_dequeue()
     #time.sleep(0.2)
 #time.sleep(20)
-
