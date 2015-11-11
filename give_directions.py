@@ -40,26 +40,26 @@ class GiveDirections:
             check_end_node = 1
         return (check_map, check_start_node, check_end_node)
 
-    # def walking_direction(self, point1, point2):
-    #     if point1[0] < point2[0]:
-    #         if point1[1] < point2[1]:
-    #             return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point1[1])))
-    #         elif point1[1] > point2[1]:
-    #             return 180 - math.degrees(math.atan2 ((point2[0] - point1[0]), (point1[1] - point2[1])))
-    #         else:
-    #             return 90
-    #     elif point1[0] > point2[0]:
-    #         if point1[1] < point2[1]:
-    #             return 360 - math.degrees(math.atan2((point1[0] - point2[0]),(point2[1] - point1[1])))
-    #         elif point1[1] > point2 [1] :
-    #             return 180 + math.degrees(math.atan2((point1[0] - point2[0]),(point1[1] - point2 [1])))
-    #         else:
-    #             return 270
-    #     else:
-    #         if point1[1] < point2[1]:
-    #             return 360
-    #         else:
-    #             return 180
+    def walking_direction(self, point1, point2):
+        if point1[0] < point2[0]:
+            if point1[1] < point2[1]:
+                return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point1[1])))
+            elif point1[1] > point2[1]:
+                return 180 - math.degrees(math.atan2 ((point2[0] - point1[0]), (point1[1] - point2[1])))
+            else:
+                return 90
+        elif point1[0] > point2[0]:
+            if point1[1] < point2[1]:
+                return 360 - math.degrees(math.atan2((point1[0] - point2[0]),(point2[1] - point1[1])))
+            elif point1[1] > point2 [1] :
+                return 180 + math.degrees(math.atan2((point1[0] - point2[0]),(point1[1] - point2 [1])))
+            else:
+                return 270
+        else:
+            if point1[1] < point2[1]:
+                return 360
+            else:
+                return 180
 
     # def turning_angle(self, heading, newheading):
     #     ang = newheading - heading
