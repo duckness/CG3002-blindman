@@ -40,64 +40,78 @@ class GiveDirections:
             check_end_node = 1
         return (check_map, check_start_node, check_end_node)
 
-    def walking_direction(self, point1, point2):
-        if point1[0] < point2[0]:
-            if point1[1] < point2[1]:
-                return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point1[1])))
-            elif point1[1] > point2[1]:
-                return 180 - math.degrees(math.atan2 ((point2[0] - point1[0]), (point1[1] - point2[1])))
-            else:
-                return 90
-        elif point1[0] > point2[0]:
-            if point1[1] < point2[1]:
-                return 360 - math.degrees(math.atan2((point1[0] - point2[0]),(point2[1] - point1[1])))
-            elif point1[1] > point2 [1] :
-                return 180 + math.degrees(math.atan2((point1[0] - point2[0]),(point1[1] - point2 [1])))
-            else:
-                return 270
-        else:
-            if point1[1] < point2[1]:
-                return 360
-            else:
-                return 180
+    # def walking_direction(self, point1, point2):
+    #     if point1[0] < point2[0]:
+    #         if point1[1] < point2[1]:
+    #             return math.degrees(math.atan2((point2[0] - point1[0]),(point2[1] - point1[1])))
+    #         elif point1[1] > point2[1]:
+    #             return 180 - math.degrees(math.atan2 ((point2[0] - point1[0]), (point1[1] - point2[1])))
+    #         else:
+    #             return 90
+    #     elif point1[0] > point2[0]:
+    #         if point1[1] < point2[1]:
+    #             return 360 - math.degrees(math.atan2((point1[0] - point2[0]),(point2[1] - point1[1])))
+    #         elif point1[1] > point2 [1] :
+    #             return 180 + math.degrees(math.atan2((point1[0] - point2[0]),(point1[1] - point2 [1])))
+    #         else:
+    #             return 270
+    #     else:
+    #         if point1[1] < point2[1]:
+    #             return 360
+    #         else:
+    #             return 180
 
-    def turning_angle(self, heading, newheading):
-        ang = newheading - heading
-        if (ang > 180):
-            ang -= 360
-        elif (ang < -180):
-            ang += 360
-        return ang
+    # def turning_angle(self, heading, newheading):
+    #     ang = newheading - heading
+    #     if (ang > 180):
+    #         ang -= 360
+    #     elif (ang < -180):
+    #         ang += 360
+    #     return ang
 
-    def turning_direction(self, angle):
-        if (angle == 0):
-            direction = "Go Straight"
-            direction = (2, 0)
-        elif (angle < 0):
-            direction = "Turn Left by " + str(round(-(angle), 2)) + " degrees"
-            direction = (0, -angle)
-        else:
-            direction = "Turn Right by " + str(round(angle, 2)) + " degrees"
-            direction = (1, angle)
-        return direction
+    # def turning_direction(self, angle):
+    #     if (angle == 0):
+    #         direction = "Go Straight"
+    #         direction = (2, 0)
+    #     elif (angle < 0):
+    #         direction = "Turn Left by " + str(round(-(angle), 2)) + " degrees"
+    #         direction = (0, -angle)
+    #     else:
+    #         direction = "Turn Right by " + str(round(angle, 2)) + " degrees"
+    #         direction = (1, angle)
+    #     return direction
 
     def distance_from_node(self, x, y, node):
         return math.hypot(x-self.maplist[node]['x'], y-self.maplist[node]['y'])
 
-    def convert_compass_angle(self, cangle):
-        ang = cangle + self.northAt
-        if(ang > 360):
-            ang -= 360
-        return ang
+    # def convert_compass_angle(self, cangle):
+    #     ang = cangle + self.northAt
+    #     if(ang > 360):
+    #         ang -= 360
+    #     return ang
 
-    def turn_direction_to_node(self, x, y, heading, target_node):
-        curr = [x, y]
-        nxt = [self.maplist[target_node]['x'], self.maplist[target_node]['y']] #get coordinates of target node
-        currheading = self.convert_compass_angle(heading) #get map angles
-        walk_angle = self.walking_direction(curr, nxt) #get angle from one point to another
-        angle = self.turning_angle(currheading, walk_angle) #adjust the angle with the map angles
-        turning_dir = self.turning_direction(angle)
-        return turning_dir
+    # def turn_direction_to_node(self, x, y, heading, target_node):
+    #     curr = [x, y]
+    #     nxt = [self.maplist[target_node]['x'], self.maplist[target_node]['y']] #get coordinates of target node
+    #     currheading = self.convert_compass_angle(heading) #get map angles
+    #     walk_angle = self.walking_direction(curr, nxt) #get angle from one point to another
+    #     angle = self.turning_angle(currheading, walk_angle) #adjust the angle with the map angles
+    #     turning_dir = self.turning_direction(angle)
+    #     return turning_dir
+
+    def turn_direction_to_node(self, heading):
+        node_heading = self.heading_from_prev_node()
+        difference = heading - node_heading
+        if (heading == node_heading):
+            direction = "Go Straight"
+            direction = (2, 0)
+        elif (difference < 0):
+            direction = "Turn Right by " + str(round(-(difference), 2)) + " degrees"
+            direction = (1, -difference)
+        else:
+            direction = "Turn Left by " + str(round(difference, 2)) + " degrees"
+            direction = (0, difference)
+        return direction
 
     def get_next_node(self):
         for i in range(len(self.path)):
@@ -125,19 +139,10 @@ class GiveDirections:
                         node_direction = "Reached exact destination"
                         node_direction = (2, 0, 0)
                         destination = 1
-                    # else:
-                    #     node_direction =  "At node " + str(targetNode) + " exactly"
-                    #     node_direction = (1, targetNode)
-                    #     targetNode = self.path[_i+1]
-                    #     targetNodeDist = self.distance_from_node(x,y,targetNode)
-                    #
-                    #     self.prevNode = self.nextNode
-                    #     self.nextNode = self.get_next_node()
-                    #     break
         else:
             node_direction = "" #to allow the addition of rough/vauge directions
 
-        turn_direction = self.turn_direction_to_node(x, y, heading, targetNode)
+        turn_direction = self.turn_direction_to_node(heading)
         walk_direction = "Walk " + str(round(targetNodeDist, 2)) + " centimeters"
         walk_direction = (round(targetNodeDist, 2))
         return (node_direction, turn_direction, walk_direction, destination)
