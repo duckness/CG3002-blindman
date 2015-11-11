@@ -48,12 +48,14 @@ class Audio:
 
     # plays a number, optionally with extra arguments before them
     # args takes in strings that represent sound files in the sounds dictionary
-    def play_number(self, node_number, *args):
-        number = str(node_number)
+    def queue_sound(self, *args):
         for a in args:
-            self.number_queue.append(a)
-        for c in number:
-            self.number_queue.append(c)
+            if a.isdigit():
+                number = str(a)
+                for c in number:
+                    self.number_queue.append(c)
+            else:
+                self.number_queue.append(a)
 
     def play_beep(self, direction):
         self.channels[direction].queue(self.sounds[direction])
