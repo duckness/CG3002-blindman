@@ -4,7 +4,7 @@ from random import randint
 # constant
 MIN_DISTANCE    = 50
 SENSOR_GROUND   = 1
-STEP            = 12
+STEP            = 20
 
 class ObstacleCues:
     # constants
@@ -37,12 +37,13 @@ class ObstacleCues:
             val = sensors[i][0]
             val2 = sensors[i][1]
             if (val > 0 and val <= MIN_DISTANCE) or (val2 > 20  and val2 <= MIN_DISTANCE):
-                if i == 1 or i == 2:
+                if (i == 1 or i == 2) and val2 <= MIN_DISTANCE*2:
                     self.return_val.append(self.FRONT_OBSTACLES)
-                    # print 'front front front'
+                    print i, val, val2
+                    # print 'front front front', i
                 else:
                     self.audio.play_beep(self.index_to_direction[i])
-                    print val, val2, self.index_to_direction[i]
+                    # print val, val2, self.index_to_direction[i]
 
         # infrared
         for i in range(0, 4):
@@ -61,4 +62,4 @@ class ObstacleCues:
             return self.NO_OBSTACLES
         else:
             self.return_val.sort()
-            return self.return_val[randint(0,len(self.return_val)-1)]
+            return self.return_val[0]

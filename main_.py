@@ -185,10 +185,10 @@ class Main:
             # debugging
             self.building_start = 'COM1'
             self.level_start = '2'
-            self.start = '15'
+            self.start = '32'
             self.building_dest = 'COM1'
             self.level_dest = '2'
-            self.end_dest = '24'
+            self.end_dest = '28'
             break
 
             keypress = self.user_input.get_input()
@@ -341,11 +341,13 @@ class Main:
             elif tmp < 20:
                 tmp = 20
             if index == 1:
-                self.sensors[index][1] *= 0.4
-                self.sensors[index][1] += tmp*0.6
+                self.sensors[index][1] *= 0.45
+                self.sensors[index][1] += tmp*0.55
+                self.sensors[index][1] += 0.5
+                self.sensors[index][1] = int(self.sensors[index][1])
             else:
                 self.sensors[index][1] = tmp
-
+            # self.sensors[index][1] = tmp
             if (index == 1 and self.calibrate < MAX_CALIBRATE and self.calibrate >= 0):
                 self.sensors[index][1] = tmp
                 self.obstacle.initial_calibration(self.sensors[1])
@@ -411,9 +413,9 @@ class Main:
             if obstacle_detected != self.obstacle.NO_OBSTACLES and self.obstacle_count == 0:
                 # start obstacle counter + delay node update
                 self.obstacle_count = MAX_OBSTACLE
-                self.navigation -= self.navigation/4
+                # self.navigation -= self.navigation/4
 
-                print self.sensors[1][1]
+                # print self.sensors[1][1]
                 if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
                     print 'Beware: Step DOWN'
                     self.audio.queue_sound('step_below')
@@ -503,7 +505,7 @@ class Main:
                 print 'Navigation update'
                 print 'Heading: ', self.heading
                 print 'Walk: ', str(walk_dir)
-                print ''
+                # print ''
 
                 if self.node_dir[0] == 1:
                     print 'Going node', self.node_dir[1]
