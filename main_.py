@@ -2,7 +2,7 @@
 import math
 from serial_processor import SerialProcessor
 from navigator import Navigator
-from obstacle import ObstacleCues
+from obstacle_v2 import ObstacleCues
 from user_input import UserInput
 from audio import Audio
 
@@ -25,7 +25,7 @@ ID_SENSOR_4         = '40'
 MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
 MAX_NAVIGATION      = 250
-MIN_TURN_ANGLE      = 10
+MIN_TURN_ANGLE      = 25
 MAX_OBSTACLE        = MAX_NAVIGATION/2
 # multiplier
 MULTIPLIER_LIMIT    = 1.000001
@@ -185,10 +185,10 @@ class Main:
             # debugging
             self.building_start = 'COM1'
             self.level_start = '2'
-            self.start = '10'
+            self.start = '15'
             self.building_dest = 'COM1'
             self.level_dest = '2'
-            self.end_dest = '34'
+            self.end_dest = '24'
             break
 
             keypress = self.user_input.get_input()
@@ -304,15 +304,6 @@ class Main:
         if self.calibrate <= MAX_CALIBRATE:
             return True
 
-        # calculations
-        # sections = round(self.heading/MULTIPLIER_HEADING, 0)
-        # self.heading = sections * MULTIPLIER_HEADING
-        # self.heading = self.heading
-
-        # debugging
-        # print self.heading
-        # self.distance = 0
-
         # position
         pos_offset = self.process_position()
         self.x.append(self.x[-1] + pos_offset[0])
@@ -345,14 +336,19 @@ class Main:
             index = int(data_id)%10
             self.sensors[index][0] = int(raw_values[0])
             tmp = int(raw_values[1])
-            # if index == 1:
-            #     print tmp
-            if tmp > 150:
-                tmp = 150
-            self.sensors[index][1] = int(raw_values[1])
+            if tmp > 160:
+                tmp = 160
+            elif tmp < 20:
+                tmp = 20
+            if index == 1:
+                self.sensors[index][1] *= 0.4
+                self.sensors[index][1] += tmp*0.6
+            else:
+                self.sensors[index][1] = tmp
 
             if (index == 1 and self.calibrate < MAX_CALIBRATE and self.calibrate >= 0):
-                self.obstacle.initial_calibration(self.sensors[index])
+                self.sensors[index][1] = tmp
+                self.obstacle.initial_calibration(self.sensors[1])
 
         except ValueError:
             return False
@@ -415,7 +411,7 @@ class Main:
             if obstacle_detected != self.obstacle.NO_OBSTACLES and self.obstacle_count == 0:
                 # start obstacle counter + delay node update
                 self.obstacle_count = MAX_OBSTACLE
-                self.navigation -= self.navigation/3
+                self.navigation -= self.navigation/4
 
                 print self.sensors[1][1]
                 if obstacle_detected == self.obstacle.OBSTACLE_STEP_DOWN:
@@ -513,21 +509,6 @@ class Main:
                     print 'Going node', self.node_dir[1]
                     self.audio.queue_sound(self.node_dir[1])
                 # turn feedback
-                # required_heading = self.navigator.heading_from_prev_node()
-                # if self.heading > required_heading and self.heading - required_heading >= MIN_TURN_ANGLE:
-                #     print 'Turn Left'
-                #     print ''
-                #     self.audio.queue_sound('left')
-                # elif self.heading < required_heading and required_heading - self.heading >= MIN_TURN_ANGLE:
-                #     print 'Turn Right'
-                #     print ''
-                #     self.audio.queue_sound('right')
-                # else:
-                #     print 'Go'
-                #     print ''
-                #     self.audio.queue_sound('go')
-
-
                 if abs(turn_dir[1]) >= MIN_TURN_ANGLE:
                     if turn_dir[0] == 0:
                         print 'Turn Left'

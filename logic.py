@@ -1,5 +1,5 @@
 ﻿import math
-#import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from datetime import datetime
 import requests
 import json
@@ -9,7 +9,7 @@ from navigator import Navigator
 from obstacle import ObstacleCues
 from user_input import UserInput
 from audio import Audio
-from wifi_finder import WifiFinder
+# from wifi_finder import WifiFinder
 
 #constants
 #loop every this number of mricoseconds
@@ -101,7 +101,7 @@ class Logic:
         self.obstacle = ObstacleCues()
         self.user_input = UserInput()
         self.audio = Audio()
-        self.wifi_finder = WifiFinder()
+        # self.wifi_finder = WifiFinder()
         self.count_wifi = 0
         self.count_navi = 0
         #init dist calculation
@@ -153,6 +153,7 @@ class Logic:
         print "Ready to recieve data from Mega"
 
         # realtime mapping
+<<<<<<< Updated upstream
         #self.getMaps()
         #plt.ion()
         #self.ax = plt.gca()
@@ -162,6 +163,13 @@ class Logic:
         #TODO: self.audio.play_sound("calibrating")
         while(self.count_imu <= COUNT_MAX):
             self.get_mega_input()
+=======
+        self.getMaps()
+        plt.ion()
+        self.ax = plt.gca()
+        plt.plot(self.map_x, self.map_y, 'bo')
+        self.line, = self.ax.plot(self.x, self.y, 'ro-')
+>>>>>>> Stashed changes
 
     def loop(self):
         destination = 0
@@ -235,7 +243,7 @@ class Logic:
                             self.audio.play_number(node_direction[1])
                             self.going_to_node_count = 0
 
-                    if(abs(turn_direction[1]) >= 46):
+                    if(abs(turn_direction[1]) >= 40):
                         if(turn_direction[0] == 0): #turn left
                             # self.left_timer += 1
                             # self.go_timer = TIME_WAIT_GO
@@ -421,11 +429,11 @@ class Logic:
                         self.distance = 0
                         # print self.total_distance
                         print "\t\t\t\t\tLOCATION", (self.x[-1], self.y[-1])
-                        #self.line.set_xdata(self.x)
-                        #self.line.set_ydata(self.y)
-                        #self.ax.relim()
-                        #plt.draw()
-                        #plt.pause(0.0000001)
+                        self.line.set_xdata(self.x)
+                        self.line.set_ydata(self.y)
+                        self.ax.relim()
+                        plt.draw()
+                        plt.pause(0.0000001)
 
                     self.isNewHeading = False
 
