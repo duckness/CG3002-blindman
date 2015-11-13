@@ -33,7 +33,7 @@ MULTIPLIER_LIMIT    = 1.01
 MULTIPLIER_G        = 981 # cm
 MULTIPLIER_DISTANCE = 2
 MULTIPLIER_MAP_C1   = 1
-MULTIPLIER_MAP_C2   = 0.75
+MULTIPLIER_MAP_C2   = 0.85
 MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
@@ -289,7 +289,7 @@ class Main:
                 # multiplier renewal
                 if self.building_start == 'COM1':
                     if self.prev_node == [5603,1787]:
-                        self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP_C1*0.75
+                        self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP_C1*0.8
                     else:
                         self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP_C1
                 else:
