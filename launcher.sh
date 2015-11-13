@@ -7,5 +7,5 @@
 
 cd /
 cd home/pi/CG3002-blindman
-sudo python logic.py
+sudo python main_.py
 cd /
