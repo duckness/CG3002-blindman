@@ -7,7 +7,7 @@ from user_input import UserInput
 from audio import Audio
 
 # debugging imports
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import requests
 import json
 import sys
@@ -163,11 +163,11 @@ class Main:
 
         # debugging
         self.log = open(sys.path[0] + "/"+self.building_start+'_'+self.level_start+'_'+self.start+'_'+self.building_dest+'_'+self.level_dest+'_'+self.end_dest+'_'+"Serial"+str(time())+'_'".txt", 'w')
-        self.get_map()
-        plt.plot(self.map_x, self.map_y, 'bo')
-        plt.ion()
-        self.axis = plt.gca()
-        self.line, = self.axis.plot(self.x, self.y, 'ro-')
+        # self.get_map()
+        # plt.plot(self.map_x, self.map_y, 'bo')
+        # plt.ion()
+        # self.axis = plt.gca()
+        # self.line, = self.axis.plot(self.x, self.y, 'ro-')
 
 
     # get map input
@@ -326,11 +326,11 @@ class Main:
         self.position[1] = self.y[-1]
 
         # debugging
-        self.line.set_xdata(self.x)
-        self.line.set_ydata(self.y)
-        self.axis.relim()
-        plt.draw()
-        plt.pause(0.0000001)
+        # self.line.set_xdata(self.x)
+        # self.line.set_ydata(self.y)
+        # self.axis.relim()
+        # plt.draw()
+        # plt.pause(0.0000001)
         self.distance_t += self.distance
         # print self.distance_t
 
@@ -478,11 +478,11 @@ class Main:
                     self.y.append(node[1])
                     self.position[0] = self.x[-1]
                     self.position[1] = self.y[-1]
-                    self.line.set_xdata(self.x)
-                    self.line.set_ydata(self.y)
-                    self.axis.relim()
-                    plt.draw()
-                    plt.pause(0.0000001)
+                    # self.line.set_xdata(self.x)
+                    # self.line.set_ydata(self.y)
+                    # self.axis.relim()
+                    # plt.draw()
+                    # plt.pause(0.0000001)
                     self.node_shift = True
             else:
                 self.node_shift = False
@@ -516,12 +516,12 @@ class Main:
                     print self.north_at, self.x, self.y, self.building_start, self.level_start
                     print self.navigator.get_position()
                     # get new map
-                    self.get_map()
-                    plt.close()
-                    plt.plot(self.map_x, self.map_y, 'bo')
-                    plt.ion()
-                    self.axis = plt.gca()
-                    self.line, = self.axis.plot(self.x, self.y, 'ro-')
+                    # self.get_map()
+                    # plt.close()
+                    # plt.plot(self.map_x, self.map_y, 'bo')
+                    # plt.ion()
+                    # self.axis = plt.gca()
+                    # self.line, = self.axis.plot(self.x, self.y, 'ro-')
                     continue
 
             # not at node, periodic update
