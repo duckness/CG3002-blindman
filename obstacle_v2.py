@@ -38,7 +38,7 @@ class ObstacleCues:
             if val > 6 and val <= MIN_DISTANCE:
                 self.audio.play_beep(self.index_to_direction[i])
                 # print 'ultrasonics', val, self.index_to_direction[i]
-            elif (i == 1 or i == 2) and val > 6 and val <= MIN_DISTANCE*2.5:
+            elif (i == 1 or i == 2) and val > 6 and val <= MIN_DISTANCE*2:
                 self.audio.play_beep(self.index_to_direction[i])
                 # print 'ultrasonics', val, self.index_to_direction[i]
 
