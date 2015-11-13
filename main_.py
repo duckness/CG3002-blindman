@@ -208,7 +208,7 @@ class Main:
             elif input_id == 1:
                 self.level_start = keypress
             elif input_id == 2:
-                self.start = int(keypress)
+                self.start = keypress
             elif input_id == 3:
                 self.building_dest = keypress
                 if self.building_dest == MAP_COM1:
@@ -218,7 +218,7 @@ class Main:
             elif input_id == 4:
                 self.level_dest = keypress
             elif input_id == 5:
-                self.end_dest = int(keypress)
+                self.end_dest = keypress
             else:
                 input_id = -1
 
