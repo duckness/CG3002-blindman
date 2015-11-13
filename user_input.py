@@ -1,4 +1,4 @@
-# from matrix_key import MatrixKey
+from matrix_key import MatrixKey
 from audio import Audio
 
 
@@ -17,9 +17,9 @@ class lol:
 class UserInput:
 
     def __init__(self):
-        self.kp = lol()
+        # self.kp = lol()
         self.audio = Audio()
-        # self.kp = MatrixKey()
+        self.kp = MatrixKey()
 
     def get_input(self):
         # Loop while waiting for a keypress
