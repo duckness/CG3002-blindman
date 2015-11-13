@@ -37,10 +37,10 @@ class ObstacleCues:
             val = sensors[i][0]
             if val > 6 and val <= MIN_DISTANCE:
                 self.audio.play_beep(self.index_to_direction[i])
-                print 'ultrasonics', val, self.index_to_direction[i]
+                # print 'ultrasonics', val, self.index_to_direction[i]
             elif (i == 1 or i == 2) and val > 6 and val <= MIN_DISTANCE*2.5:
                 self.audio.play_beep(self.index_to_direction[i])
-                print 'ultrasonics', val, self.index_to_direction[i]
+                # print 'ultrasonics', val, self.index_to_direction[i]
 
         # infrared
         for i in range(0, 4):
@@ -55,7 +55,7 @@ class ObstacleCues:
             else:
                 if val > 20 and val <= MIN_DISTANCE:
                     self.audio.play_beep(self.index_to_direction[i])
-                    print 'infrared', val, self.index_to_direction[i]
+                    # print 'infrared', val, self.index_to_direction[i]
 
         if len(self.return_val) == 0:
             return self.NO_OBSTACLES

@@ -451,7 +451,7 @@ class Main:
                 print ''
                 print 'Reached node'
                 print 'Heading: ', self.heading
-                print 'Walk: ', str(walk_dir)
+                # print 'Walk: ', str(walk_dir)
                 print ''
                 self.audio.queue_sound('node', self.node_dir[1])
                 pass
@@ -530,7 +530,7 @@ class Main:
                 print ''
                 print 'Navigation update'
                 print 'Heading: ', self.heading
-                print 'Walk: ', str(walk_dir)
+                # print 'Walk: ', str(walk_dir)
                 # print ''
 
                 if self.node_dir[0] == 1:
