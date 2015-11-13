@@ -1,7 +1,7 @@
 ﻿import math
 
 from collections import defaultdict
-   
+
 class GraphCreator:
     """
     #TODO: implement wifi and info processing
@@ -15,13 +15,14 @@ class GraphCreator:
         self.maplist = {}
         self.edges = defaultdict(int)
         self.edgelist = []
-    
+
     #create mapList by nodeId
     #mapList:  (int)nodeId : {"nodeId"(int), "nodeName"(str), "links"([int, int]), "x"(int), "y"(int)}
     #this is to ensure that stripping/converting str to int only happens once, at the start
-    def create_maplist(self, map):
-        for i in xrange (0, len(map)):
-            point = map[i]
+    def create_maplist(self, raw_map):
+        self.maplist = {}
+        for i in xrange (0, len(raw_map)):
+            point = raw_map[i]
             nodeId = int(point["nodeId"])
             self.maplist[nodeId] = {}
             self.maplist[nodeId]["nodeId"] = nodeId
@@ -36,11 +37,12 @@ class GraphCreator:
         return self.maplist
 
     def create_edges(self):
+        self.edgelist = []
         for i in self.maplist:
             links = self.maplist[i]["links"]
             for j in links:
                 self.edgelist.append((i, j))
-        
+
         for k in self.edgelist:
             x1 = self.maplist[k[0]]["x"]
             y1 = self.maplist[k[0]]["y"]
@@ -54,7 +56,7 @@ class GraphCreator:
 
     def get_maplist(self):
         return self.maplist
-    
+
     #internal method to calculate distance between 2 points
     def calculate_distance(self, x1, y1, x2, y2):
         distance = math.hypot(x2-x1, y2-y1)

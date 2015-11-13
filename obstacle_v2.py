@@ -2,9 +2,9 @@ from audio import Audio
 from random import randint
 
 # constant
-MIN_DISTANCE    = 50
+MIN_DISTANCE    = 60
 SENSOR_GROUND   = 1
-STEP            = 20
+STEP            = 15
 
 class ObstacleCues:
     # constants
@@ -35,15 +35,12 @@ class ObstacleCues:
         # ultrasonics
         for i in range(0, 4):
             val = sensors[i][0]
-            val2 = sensors[i][1]
-            if (val > 0 and val <= MIN_DISTANCE) or (val2 > 20  and val2 <= MIN_DISTANCE):
-                if (i == 1 or i == 2) and val2 <= MIN_DISTANCE*2:
-                    self.return_val.append(self.FRONT_OBSTACLES)
-                    print i, val, val2
-                    # print 'front front front', i
-                else:
-                    self.audio.play_beep(self.index_to_direction[i])
-                    # print val, val2, self.index_to_direction[i]
+            if val > 6 and val <= MIN_DISTANCE:
+                self.audio.play_beep(self.index_to_direction[i])
+                print 'ultrasonics', val, self.index_to_direction[i]
+            elif (i == 1 or i == 2) and val > 6 and val <= MIN_DISTANCE*2.5:
+                self.audio.play_beep(self.index_to_direction[i])
+                print 'ultrasonics', val, self.index_to_direction[i]
 
         # infrared
         for i in range(0, 4):
@@ -55,8 +52,10 @@ class ObstacleCues:
                 elif val < self.ground_height-STEP:
                     # step up
                     self.return_val.append(self.OBSTACLE_STEP_UP)
-                else:
-                    pass
+            else:
+                if val > 20 and val <= MIN_DISTANCE:
+                    self.audio.play_beep(self.index_to_direction[i])
+                    print 'infrared', val, self.index_to_direction[i]
 
         if len(self.return_val) == 0:
             return self.NO_OBSTACLES

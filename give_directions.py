@@ -25,6 +25,7 @@ class GiveDirections:
         self.building = building
         self.level = level
         self.maplist, self.edges, check_map = self.mapfetcher.fetch_map(building, level)
+        self.lastNode = 0
         if(check_map == 0):
             self.northAt = float(self.mapfetcher.get_info()['northAt'])
             self.path, check_start_node, check_end_node = self.pathcalculator.calculate_path(self.maplist, self.edges, start, end)
@@ -125,7 +126,6 @@ class GiveDirections:
     def giving_exact_direction(self, x, y, heading, targetNode):
         destination = 0
         targetNodeDist = self.distance_from_node(x, y, targetNode)
-
         if(targetNode == self.path[len(self.path)-1]):
             self.lastNode = 1; #going to last node in the path
 

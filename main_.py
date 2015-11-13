@@ -25,13 +25,15 @@ ID_SENSOR_4         = '40'
 MIN_CALIBRATE       = -50
 MAX_CALIBRATE       = 300
 MAX_NAVIGATION      = 250
-MIN_TURN_ANGLE      = 25
-MAX_OBSTACLE        = MAX_NAVIGATION/2
+MIN_TURN_ANGLE      = 20
+MAX_OBSTACLE        = 100
+MAX_ALTITUDE        = 10
 # multiplier
-MULTIPLIER_LIMIT    = 1.000001
+MULTIPLIER_LIMIT    = 1.01
 MULTIPLIER_G        = 981 # cm
 MULTIPLIER_DISTANCE = 2
-MULTIPLIER_MAP      = 1
+MULTIPLIER_MAP_C1   = 1
+MULTIPLIER_MAP_C2   = 0.75
 MULTIPLIER_HEADING  = 22.5
 # user input
 MAP_COM1            = '1'
@@ -74,7 +76,8 @@ class Main:
         self.magno          = [0,0,0]
         self.heading        = 999
         self.pressure       = 0
-        self.altitude       = 0
+        self.prev_altitude  = None
+        self.altitude       = None
         self.temp           = 0
         self.sensors        = [[0,0],[0,0],[0,0],[0,0]]
         # calibration
@@ -159,12 +162,12 @@ class Main:
         print 'System Ready.'
 
         # debugging
-        self.log = open(sys.path[0] + "/Serial"+str(time())+".txt", 'w')
-        self.get_map()
-        plt.plot(self.map_x, self.map_y, 'bo')
-        plt.ion()
-        self.axis = plt.gca()
-        self.line, = self.axis.plot(self.x, self.y, 'ro-')
+        self.log = open(sys.path[0] + "/"+self.building_start+'_'+self.level_start+'_'+self.start+'_'+self.building_dest+'_'+self.level_dest+'_'+self.end_dest+'_'+"Serial"+str(time())+'_'".txt", 'w')
+        # self.get_map()
+        # plt.plot(self.map_x, self.map_y, 'bo')
+        # plt.ion()
+        # self.axis = plt.gca()
+        # self.line, = self.axis.plot(self.x, self.y, 'ro-')
 
 
     # get map input
@@ -183,13 +186,13 @@ class Main:
 
         while input_id < 6:
             # debugging
-            self.building_start = 'COM1'
-            self.level_start = '2'
-            self.start = '32'
-            self.building_dest = 'COM1'
-            self.level_dest = '2'
-            self.end_dest = '28'
-            break
+            # self.building_start = 'COM1'
+            # self.level_start = '2'
+            # self.start = '10'
+            # self.building_dest = 'COM1'
+            # self.level_dest = '2'
+            # self.end_dest = '34'
+            # break
 
             keypress = self.user_input.get_input()
             if keypress == '':
@@ -255,6 +258,7 @@ class Main:
         if len(raw_values) != 13:
             return False
 
+        self.prev_altitude = self.altitude
         # parsing of raw_values
         try:
             self.dt         = float(raw_values[0])
@@ -282,7 +286,17 @@ class Main:
             self.limit = max(self.limit, tmp_r)
         elif self.calibrate > MAX_CALIBRATE:
             if self.r > self.limit:
-                self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP
+                # multiplier renewal
+                if self.building_start == 'COM1':
+                    if self.prev_node == [5603,1787]:
+                        self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP_C1*0.75
+                    else:
+                        self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP_C1
+                else:
+                    self.distance += self.r * MULTIPLIER_G * self.dt * self.dt * MULTIPLIER_DISTANCE * MULTIPLIER_MAP_C2
+                # climb stairs
+                if abs(self.altitude - self.prev_altitude) > MAX_ALTITUDE:
+                    self.distance = 0
         else:
             pass
 
@@ -312,11 +326,11 @@ class Main:
         self.position[1] = self.y[-1]
 
         # debugging
-        self.line.set_xdata(self.x)
-        self.line.set_ydata(self.y)
-        self.axis.relim()
-        plt.draw()
-        plt.pause(0.0000001)
+        # self.line.set_xdata(self.x)
+        # self.line.set_ydata(self.y)
+        # self.axis.relim()
+        # plt.draw()
+        # plt.pause(0.0000001)
         self.distance_t += self.distance
         # print self.distance_t
 
@@ -373,6 +387,7 @@ class Main:
 
         # calculate position from heading
         y_degree_rad = math.radians(y_degree)
+        # print y_degree_rad
         x = self.distance * round(math.sin(y_degree_rad),0)
         y = self.distance * round(math.cos(y_degree_rad),0)
 
@@ -452,20 +467,22 @@ class Main:
                     self.prev_node = node
                 else:
                     if self.prev_node[0] == node[0]:
-                        node[1] -= abs(self.prev_node[1] - node[1])*NODE_BUFFER
+                        node[1] += (self.prev_node[1] - node[1])*NODE_BUFFER
                     elif self.prev_node[1] == node[1]:
-                        node[0] -= abs(self.prev_node[0] - node[0])*NODE_BUFFER
+                        node[0] += (self.prev_node[0] - node[0])*NODE_BUFFER
                     self.prev_node[0] = tmp[0]
                     self.prev_node[1] = tmp[1]
 
                 if self.node_shift == False:
                     self.x.append(node[0])
                     self.y.append(node[1])
-                    self.line.set_xdata(self.x)
-                    self.line.set_ydata(self.y)
-                    self.axis.relim()
-                    plt.draw()
-                    plt.pause(0.0000001)
+                    self.position[0] = self.x[-1]
+                    self.position[1] = self.y[-1]
+                    # self.line.set_xdata(self.x)
+                    # self.line.set_ydata(self.y)
+                    # self.axis.relim()
+                    # plt.draw()
+                    # plt.pause(0.0000001)
                     self.node_shift = True
             else:
                 self.node_shift = False
@@ -496,6 +513,15 @@ class Main:
                     self.y = []
                     self.x.append(self.position[0])
                     self.y.append(self.position[1])
+                    print self.north_at, self.x, self.y, self.building_start, self.level_start
+                    print self.navigator.get_position()
+                    # get new map
+                    # self.get_map()
+                    # plt.close()
+                    # plt.plot(self.map_x, self.map_y, 'bo')
+                    # plt.ion()
+                    # self.axis = plt.gca()
+                    # self.line, = self.axis.plot(self.x, self.y, 'ro-')
                     continue
 
             # not at node, periodic update
@@ -536,13 +562,15 @@ class Main:
         self.audio.queue_sound('trapped', 'trapped')
 
         while (destination is not 0):
-            print 'done done done'
+            # print 'done done done'
             self.audio.sound_dequeue()
             pass
 
     # debugging functions
     def get_map(self):
         coord = []
+        self.map_x = []
+        self.map_y = []
         url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?' + 'Building=' + self.building_start + '&Level=' + self.level_start
 
         try:

@@ -7,7 +7,7 @@ from graph_creator import GraphCreator
 class MapFetcher:
     """
     mapFetcher uses requests and json to fetch the map details from the internet
-    given the building and level. 
+    given the building and level.
     If incorrect building/level is given, #TODO: what to do?
     info, map and wifi are retrieved using getInfo, getMap, getWifi
     Data is returned in raw form.
@@ -33,7 +33,7 @@ class MapFetcher:
         url = MapFetcher.URL_STANDARD + "Building=" + self.building + "&Level=" + self.level
         count = 0
         check_map = 0 #map is valid
-
+        self.info = ""
         while(self.info == "" and count < 10):
             try:
                 REQUEST = requests.get(url) #load json from url
@@ -44,7 +44,6 @@ class MapFetcher:
                 if(self.info != None): #if there is data in the url
                     self._map = data['map'] #store map data into map
                     self.wifi = data['wifi'] #store wifi data into wifi
-
                     original_text = urllib.urlopen(url) #load data from url
                     original_data = original_text.read() #data from url is stored in original data (in original format)
                     original_text.close()
@@ -82,11 +81,11 @@ class MapFetcher:
         self.maplist = self.graphcreator.create_maplist(self._map)
         self.edges = self.graphcreator.create_edges()
         return (self.maplist, self.edges, check_map)
-    
+
     #possible: implement the creating of the mapList here instead of graphCreator
     def get_map(self):
         return (self.maplist, self.edges)
-    
+
     def get_info(self):
         return self.info
 
